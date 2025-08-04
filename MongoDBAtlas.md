@@ -155,17 +155,84 @@ All events appear as log events in Dynatrace, allowing custom log analytics.
 
 ## FAQ
 
-**Q: Can Dynatrace modify MongoDB Atlas data?**
+Absolutely, here are expanded FAQs you can add (all answers are Dynatrace-context, forward-looking, and clear):
 
-A: No, all API calls are read-only.
+---
 
-**Q: Can I scope API keys?**
+### **Additional FAQs for MongoDB Atlas Dynatrace Integration**
 
-A: Yes, use `PROJECT_READ_ONLY` for specific project-level scoping.
+---
 
-**Q: How often is data fetched?**
+**Q: How does DDU licensing work for the MongoDB Atlas Dynatrace extension?**
 
-A: Default polling interval is every minute, adjustable based on requirements.
+A: The metrics and events collected through this extension consume Dynatrace Davis Data Units (DDUs).
+For details, see: [DDUs for metrics](https://www.dynatrace.com/support/help/shortlink/metrics-ddu).
+
+* The extension monitors **all clusters** (deployments) within a MongoDB Atlas project.
+* Each cluster has a number of nodes (processes), which is where process metrics are collected.
+* If you enable disk metrics, those are collected from each node’s disk partition(s).
+
+**General formula for DDU metric count:**
+
+* **Process Metrics (Total = 108 per node):**
+  `num_process_metrics = Number of projects × Clusters per project × Nodes per cluster × 108`
+
+* **Disk Metrics (Total = 18 per partition):**
+  `num_disk_metrics = Number of projects × Clusters per project × Nodes per cluster × Partitions per node × 18`
+
+* **Total metrics:**
+  `Total_metrics = num_process_metrics + num_disk_metrics`
+
+The total DDU consumption depends on the number of clusters, nodes, partitions, and how many metrics you enable. Monitor your DDU usage in Dynatrace to optimize costs.
+
+---
+
+**Q: What is the business value of integrating MongoDB Atlas with Dynatrace?**
+
+A: This integration brings real-time visibility and proactive monitoring to your cloud MongoDB environment. It helps teams quickly detect performance issues, anomalies, and potential risks before they impact users or critical business processes. With Dynatrace’s dashboards, AI-powered root cause analysis, and alerting, you minimize downtime, improve customer experience, and get actionable insights for both technical and business decisions.
+
+---
+
+**Q: How does this integration help the database team?**
+
+A: The database team benefits by:
+
+* Getting a unified view of MongoDB Atlas health, performance, and events alongside other monitored apps and infrastructure
+* Receiving AI-driven problem detection and correlation (no more manual log digging)
+* Accelerating incident response and root cause analysis, thanks to precise anomaly alerts and dashboards
+* Reducing silos between DB, app, and ops teams, so everyone works from the same data and context
+
+---
+
+**Q: Will MongoDB logs be ingested into Dynatrace along with metrics?**
+
+A: As of now, the official MongoDB Atlas Dynatrace extension ingests **metrics** and **Atlas platform events** (like cluster changes, alerts, and snapshots) as Dynatrace log events. It **does not directly collect full database logs** (such as slow query logs or audit logs) from MongoDB Atlas itself, because MongoDB Atlas does not expose raw database logs over its Admin API.
+However, you can ingest Atlas “event” information—which covers high-level operational events—into Dynatrace log analytics.
+If you require raw database log ingestion, you would need to export logs from Atlas separately (using Atlas automation or external storage integrations), and then use Dynatrace’s log ingest APIs to bring those in.
+
+---
+
+**Q: Can I limit which MongoDB Atlas projects or metrics are monitored to save on licensing?**
+
+A: Yes, you can scope API keys to specific projects, and configure the Dynatrace extension to collect only the data you need. Adjust polling intervals and disable disk/event monitoring if not needed to control DDU consumption.
+
+---
+
+**Q: Is data collection secure and compliant?**
+
+A: All data transfers are read-only, encrypted in transit, and API keys are securely stored within Dynatrace. You can restrict API key scope, IP whitelist, and revoke keys at any time for security compliance.
+
+---
+
+**Q: Is setup reversible? What if we want to disconnect later?**
+
+A: Yes, you can disable or remove the Dynatrace extension at any time, revoke API keys in Atlas, and all data collection will immediately stop.
+
+---
+
+**Q: Who can access the MongoDB Atlas data inside Dynatrace?**
+
+A: Access to ingested metrics/events is governed by Dynatrace user permissions and management zones, so you can restrict visibility as needed.
 
 ---
 
