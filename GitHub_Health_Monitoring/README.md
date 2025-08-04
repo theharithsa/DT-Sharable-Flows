@@ -14,7 +14,7 @@ For business leaders and tech managers, knowing what’s happening in engineerin
 * Track both technical and human factors (like review bottlenecks, deployment velocity, or contributor activity)
 * Have one place for infrastructure, application, AND DevOps metrics—driving real DevSecOps culture
 
-*Source: “Key Metrics for Dev Teams from GitHub API Endpoints”*.
+*[Source: “Key Metrics for Dev Teams from GitHub API Endpoints”](../assets/github.pdf)*.
 
 ---
 
@@ -38,7 +38,7 @@ All these data points become **metrics** and **logs** you can visualize, alert o
 
 ```mermaid
 graph TD;
-    A[GitHub API] --> B[Integration Script/Service]
+    A[GitHub API] <--> B[Dynatrace Automation Engine]
     B --> C1[Dynatrace Logs Ingest API]
     B --> C2[Dynatrace Metrics Ingest API]
     C1 & C2 --> D[Dynatrace Platform: Dashboards, Alerts, AI]
@@ -190,51 +190,6 @@ This makes your GitHub-to-Dynatrace integration cloud-native, reliable, and low-
    * Send the results to Dynatrace Metrics API and/or Logs API (another HTTP action)
    * Optionally, notify teams if something goes wrong or thresholds are crossed
 
-**Example (simplified YAML style):**
-
-```yaml
-workflow:
-  trigger:
-    type: schedule
-    cron: "0 * * * *"  # every hour
-  actions:
-    - name: Fetch GitHub PRs
-      type: http
-      config:
-        url: "https://api.github.com/repos/<org>/<repo>/pulls?state=all"
-        method: GET
-        headers:
-          Authorization: "Bearer ${GITHUB_TOKEN}"
-    - name: Transform Data
-      type: code
-      language: javascript
-      script: |
-        // parse response, calculate metrics
-        const prCount = response.length;
-        const avgReviewTime = // ... calculate average
-        return { prCount, avgReviewTime };
-    - name: Send Metrics to Dynatrace
-      type: http
-      config:
-        url: "https://<DT_ENV>.live.dynatrace.com/api/v2/metrics/ingest"
-        method: POST
-        headers:
-          Authorization: "Api-Token ${DT_API_TOKEN}"
-        body: |
-          [{
-            "metric": "github.pr.count",
-            "dataPoints": [[Date.now(), ${prCount}]],
-            "dimensions": {"repo": "<repo>", "org": "<org>"}
-          },
-          {
-            "metric": "github.pr.avg_review_time",
-            "dataPoints": [[Date.now(), ${avgReviewTime}]],
-            "dimensions": {"repo": "<repo>", "org": "<org>"}
-          }]
-```
-
-**You can build this visually** in Dynatrace AutomationEngine (Workflows UI), so even non-coders can drag, drop, and configure these actions.
-
 ---
 
 ### Example Automation Scenarios
@@ -308,7 +263,7 @@ You’re not just visualizing data—you’re *acting on it*, automatically, as 
 ## 📑 References
 
 * **Key Metrics for Dev Teams from GitHub API Endpoints**
-  (Full list of recommended metrics and GitHub API endpoints you can use as a starting point)
+  (../assets/github.pdf)
 
 * [Dynatrace API: Logs Ingest](https://www.dynatrace.com/support/help/dynatrace-api/environment-api/logs/ingest-logs)
 
