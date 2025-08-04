@@ -1,9 +1,4 @@
-Absolutely! Let’s make it super clear for both business and technical folks. I’ll give you a detailed markdown doc—explain the business value, then go step-by-step for developers (with some architecture, key API calls, and even a sample payload), plus how to set up dashboards/alerts in Dynatrace. This way, anyone from a CTO to a hands-on dev can get the full picture and even start building the integration.
-
----
-
 # Integrating GitHub Data with Dynatrace
-
 *How to Connect GitHub API Metrics to Dynatrace for Full Engineering Observability*
 
 ---
