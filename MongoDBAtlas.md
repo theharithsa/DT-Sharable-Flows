@@ -44,6 +44,10 @@ Ensure the following before starting the integration:
 
 ## Architecture and Data Flow
 
+Diagram showing the integration architecture between Dynatrace and MongoDB Atlas. On the left, a purple box labeled Dynatrace contains an icon for Dashboards and the word Dashboards. In the center, a purple box labeled Dynatrace ActiveGate connects Dynatrace to MongoDB Atlas. Arrows indicate data flow: an API key connects Dashboards to Dynatrace ActiveGate, and Dynatrace ActiveGate communicates with MongoDB Atlas using the MongoDB Atlas Administration API. On the right, a white box labeled MongoDB Atlas lists Projects, Clusters, Nodes, Metrics, and Events, with each item marked by a green dot. The diagram visually explains how Dynatrace ActiveGate securely collects monitoring data from MongoDB Atlas and makes it available for analysis and visualization in Dynatrace dashboards. The tone is neutral and informative, focusing on technical clarity.
+
+![MogoDB Architecture](assets/mongodb-atlas-architecture.png)
+
 ### Architectural Overview
 
 * **Dynatrace ActiveGate**: The central component facilitating secure API communication.
