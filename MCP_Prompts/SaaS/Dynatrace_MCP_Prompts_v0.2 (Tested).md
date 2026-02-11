@@ -1,6 +1,7 @@
 # Dynatrace MCP Prompts v0.2 — Enhanced & Fine-Tuned
 
-> **Changelog from v1:**
+> **Changelog from v0.1:**
+
 > - Added explicit DQL metric names and entity types for higher success rates
 > - Restructured prompts into numbered steps for multi-tool orchestration
 > - Added "Expected Output" sections so responses are structured and verifiable
