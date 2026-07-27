@@ -49,6 +49,28 @@
   .slide.active { display: flex; }
   @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
+  /* ── Progressive reveal: top-level content rises in with a stagger ── */
+  .slide.active > * { animation: rise .5s cubic-bezier(.22,.61,.36,1) both; }
+  .slide.active > *:nth-child(1) { animation-delay: .06s; }
+  .slide.active > *:nth-child(2) { animation-delay: .15s; }
+  .slide.active > *:nth-child(3) { animation-delay: .24s; }
+  .slide.active > *:nth-child(4) { animation-delay: .33s; }
+  .slide.active > *:nth-child(5) { animation-delay: .42s; }
+  .slide.active > *:nth-child(6) { animation-delay: .51s; }
+  .slide.active > *:nth-child(7) { animation-delay: .60s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+  /* ── Act progress stepper (topbar centre) ───────── */
+  .actbar { display: flex; gap: .5vw; align-items: center; }
+  .actstep { font-size: 11px; letter-spacing: .05em; color: var(--text-sub); padding: 4px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); opacity: .5; transition: color .35s ease, background .35s ease, border-color .35s ease, opacity .35s ease, box-shadow .35s ease; white-space: nowrap; }
+  .actstep.done { opacity: .85; border-color: var(--primary); color: var(--primary); }
+  .actstep.active { opacity: 1; border-color: var(--primary-strong); color: var(--bg); background: var(--primary-strong); font-weight: 700; box-shadow: 0 0 0 3px rgba(184,187,255,.18); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slide, .slide.active > * { animation: none !important; }
+    .actstep { transition: none; }
+  }
+
   /* ── Typography ─────────────────────────────────── */
   .kicker { color: var(--primary); font-size: .95vw; letter-spacing: .18em; text-transform: uppercase; font-weight: 600; margin-bottom: 1.2vh; display: flex; align-items: center; gap: .6vw; }
   .kicker::before { content: ''; display: inline-block; width: 2px; height: 1em; background: var(--primary); border-radius: 2px; flex-shrink: 0; }
@@ -127,7 +149,14 @@
 
   /* ── Callout box ────────────────────────────────── */
   .callout { background: var(--surface); border: 1px solid var(--primary); border-radius: 12px; padding: 1.6vh 1.4vw; font-size: 1.2vw; color: var(--text); margin-top: 2.4vh; }
-
+  /* ── Live-example screenshot (copy + real product shot) ── */
+  .liveex { display: grid; grid-template-columns: 1fr auto; gap: 2.6vw; align-items: center; margin-top: 1vh; }
+  .liveex-copy ul { font-size: 1.15vw; }
+  .liveex-copy .callout { font-size: 1.05vw; margin-top: 2vh; }
+  .shot { margin: 0; display: flex; flex-direction: column; align-items: center; }
+  .shot img { max-height: 72vh; width: auto; max-width: 38vw; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 12px 40px rgba(0, 0, 0, .5); display: block; }
+  .shot figcaption { margin-top: 1vh; font-size: .8vw; line-height: 1.35; color: var(--text-sub); text-align: center; max-width: 100%; font-style: italic; }
+  .persona .shot img { max-height: 64vh; max-width: 100%; }
   /* ── Stat cards ─────────────────────────────────── */
   .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.6vw; }
   .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 2.6vh 1.4vw; }
@@ -162,6 +191,57 @@
   .footer-series b { color: var(--primary); font-weight: 600; }
   .footer-hint { font-size: 11px; color: var(--border); letter-spacing: .02em; }
   .bar { position: fixed; bottom: 38px; left: 0; height: 2px; background: linear-gradient(90deg,var(--primary),var(--primary-strong)); transition: width .3s; z-index: 21; }
+
+  /* ── Sticky cheatsheet link (topbar) ──────────── */
+  .topbar-right { display: flex; align-items: center; gap: 14px; }
+  .cheat-link { font-size: 11px; letter-spacing: .05em; color: var(--primary); border: 1px solid var(--primary); border-radius: 999px; padding: 4px 12px; text-decoration: none; white-space: nowrap; transition: background .2s ease, color .2s ease; }
+  .cheat-link:hover { background: var(--primary); color: var(--bg); }
+
+  /* ── Responsive: tablets & phones ─────────────── */
+  @media (max-width: 900px) {
+    body { overflow: auto; }
+    .slide { padding: 76px 6vw 70px; justify-content: flex-start; overflow-y: auto; }
+    .kicker { font-size: 2.8vw !important; }
+    h1 { font-size: 7.2vw !important; }
+    h2 { font-size: 5.6vw !important; }
+    h2::after { width: 12vw; }
+    p.lead { font-size: 3.6vw !important; max-width: none; }
+    ul { font-size: 3.4vw !important; max-width: none; }
+    .cols, .persona, .liveex { display: flex; flex-direction: column; gap: 2.4vh; }
+    .grid4 { grid-template-columns: 1fr 1fr; }
+    .stats { grid-template-columns: 1fr !important; max-width: none !important; }
+    .arch { grid-template-columns: 1fr; }
+    .conn { transform: rotate(90deg); font-size: 6vw; }
+    .payoff { grid-template-columns: 1fr; }
+    .payoff .vs { transform: rotate(90deg); }
+    .payoff .big { font-size: 10vw; }
+    .payoff p { font-size: 3.2vw; }
+    .qbox { font-size: 3.6vw !important; }
+    .chip, .taxo span { font-size: 2.8vw; }
+    .pbadge { font-size: 2.8vw; }
+    .step .l, .step .m { font-size: 2.8vw; }
+    .step h4 { font-size: 3.4vw; }
+    .node h4 { font-size: 3.8vw; }
+    .node p { font-size: 2.9vw; }
+    .stat .num { font-size: 9vw; }
+    .stat .cap { font-size: 3.2vw; }
+    .src { font-size: 2.5vw; }
+    .dtable { font-size: 3vw; }
+    .dtable th { font-size: 2.6vw; }
+    .callout { font-size: 3.2vw; }
+    .result .rv { font-size: 3.4vw; }
+    .result .rk { font-size: 2.6vw; }
+    .shot img { max-width: 100%; max-height: 52vh; }
+    .shot figcaption { font-size: 2.6vw; }
+    .marker .go { font-size: 14vw; }
+    .actbar { display: none; }
+    .topbar { padding: 0 3vw; gap: 8px; }
+    .logo img { height: 22px; }
+    .topbar-right { gap: 8px; }
+    .cheat-link { font-size: 10px; padding: 3px 9px; }
+    .footer-series { font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .footer-hint { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -169,14 +249,49 @@
 <!-- SLIDES START -->
 
 <!-- 1 · Title ─────────────────────────────────────── -->
-<section class="slide active">
+<section class="slide active" data-act="0">
   <div class="kicker">Enablement Series · AI &amp; the Dynatrace platform</div>
   <h1>Dynatrace Assist<br /><span class="accent">your AI copilot, inside the platform</span></h1>
   <p class="lead">Ask in plain English. Get grounded answers, DQL, root-cause guidance, and configuration help — without leaving Dynatrace, and without opening a support ticket for every small thing.</p>
 </section>
 <!-- SPEAKER NOTES: "Welcome to this Dynatrace User Group Enablement session. Today is fully interactive — I want you throwing prompts at Dynatrace Assist with me. By the end you'll know exactly what it can do for you day to day, and where it draws the line. Let's start with why this matters." -->
 
-<!-- 2 · The problem ──────────────────────────────── -->
+<!-- 2 · Agenda ───────────────────────────────────── -->
+<section class="slide" data-act="0">
+  <div class="kicker">Session agenda · how the hour flows</div>
+  <h2>Three acts, one interactive hour</h2>
+  <div class="cols">
+    <div class="card acc">
+      <div class="kicker">Act 1 · Understand</div>
+      <ul style="font-size:1.15vw">
+        <li>What Dynatrace Assist is</li>
+        <li>How it works &amp; why it matters</li>
+        <li>What you can ask it to do</li>
+      </ul>
+    </div>
+    <div class="card acc">
+      <div class="kicker">Act 2 · See it live</div>
+      <ul style="font-size:1.15vw">
+        <li>Real, validated prompts</li>
+        <li>Unique power-user use cases</li>
+        <li>Prompting best practices</li>
+        <li>Your turn — bring questions</li>
+      </ul>
+    </div>
+    <div class="card acc">
+      <div class="kicker">Act 3 · Take it home</div>
+      <ul style="font-size:1.15vw">
+        <li>Outcomes &amp; industry proof</li>
+        <li>Privacy &amp; data controls</li>
+        <li>Getting started this week</li>
+      </ul>
+    </div>
+  </div>
+  <p class="lead" style="margin-top:2.4vh">Interactive throughout — the tracker at the top shows which act we're in as we go.</p>
+</section>
+<!-- SPEAKER NOTES: "Here's the shape of our hour. Act one, we understand what Assist is. Act two is the fun part — live prompts, unique use cases, and how to prompt well, with you driving. Act three, we land the outcomes, the privacy story, and how to start Monday. Watch the tracker up top — it tells you which act we're in the whole way through." -->
+
+<!-- 3 · The problem ──────────────────────────────── -->
 <section class="slide">
   <div class="kicker">Act 1 · concept 1 of 5</div>
   <h2>The gap between the data and the answer</h2>
@@ -254,7 +369,7 @@
 <!-- SPEAKER NOTES: "The business value is not 'AI is cool.' It's that expertise stops being a bottleneck. Junior engineers move faster, senior engineers get interrupted less, and the whole team stays in flow. That's the promise — now let's prove it isn't just a slide." -->
 
 <!-- 7 · Marker — concepts are cheap ──────────────── -->
-<section class="slide marker">
+<section class="slide marker" data-act="2">
   <div class="go">&#10138;</div>
   <h1 style="font-size:3.4vw">Concepts are cheap.<br />Let's prove it live.</h1>
   <p class="lead" style="text-align:center;max-width:60ch">The next few slides are real prompts I ran against Dynatrace Assist while building this session. Every answer came back grounded and sourced.</p>
@@ -265,15 +380,23 @@
 <section class="slide">
   <div class="kicker">Act 2 · the format</div>
   <h2>How this interactive session runs</h2>
-  <ul>
-    <li><b>I ask, you ask</b> — I'll open each use case with a validated prompt, then you send your own version live.</li>
-    <li><b>Read the answer critically</b> — we check the response and, crucially, its <b>source links</b> together.</li>
-    <li><b>Bring your real questions</b> — the messier and more real, the better the demo.</li>
-    <li><b>No wrong prompts</b> — if Assist misreads intent, that's a learning moment about how to phrase.</li>
-  </ul>
-  <div class="callout">Goal for the hour: everyone leaves having asked Dynatrace Assist at least one question that saved them a future ticket.</div>
+  <div class="liveex">
+    <div class="liveex-copy">
+      <ul>
+        <li><b>I ask, you ask</b> — I'll open each use case with a validated prompt, then you send your own version live.</li>
+        <li><b>Read the answer critically</b> — we check the response and, crucially, its <b>source links</b> together.</li>
+        <li><b>Bring your real questions</b> — the messier and more real, the better the demo.</li>
+        <li><b>No wrong prompts</b> — if Assist misreads intent, that's a learning moment about how to phrase.</li>
+      </ul>
+      <div class="callout">Goal for the hour: everyone leaves having asked Dynatrace Assist at least one question that saved them a future ticket.</div>
+    </div>
+    <figure class="shot">
+      <img src="slide_images/1.png" alt="A real Dynatrace Assist answer explaining problem P-260716460 — what the event means and what to check first" />
+      <figcaption>A real Assist answer — problem <b>P-260716460</b>: what the event means <b>and</b> what to check first, grounded in the live environment.</figcaption>
+    </figure>
+  </div>
 </section>
-<!-- SPEAKER NOTES: "Quick house rules. This is a conversation, not a lecture. I'll seed each use case, you fire off your own prompt, and we read the answer and its sources together. Bring your ugliest real-world question — that's exactly what makes this useful." -->
+<!-- SPEAKER NOTES: "Quick house rules. This is a conversation, not a lecture. I'll seed each use case, you fire off your own prompt, and we read the answer and its sources together. On the right is exactly what a real answer looks like — Assist taking a live problem and telling you what it means and what to check first. Bring your ugliest real-world question; that's what makes this useful." -->
 
 <!-- 9 · Persona map ──────────────────────────────── -->
 <section class="slide">
@@ -318,13 +441,10 @@
         <span class="chip">source links</span>
       </div>
     </div>
-    <div>
-      <div class="result">
-        <div class="rk">Result</div>
-        <div class="rv">A ready-to-run <code>timeseries</code> query using <code>avg(dt.host.cpu.usage)</code>, sorted and limited to 10 — plus links to the DQL examples docs.</div>
-      </div>
-      <p class="lead" style="margin-top:2vh;font-size:1.2vw">You go from intent to a working query without memorizing field names or functions.</p>
-    </div>
+    <figure class="shot">
+      <img src="slide_images/2.png" alt="Real Dynatrace Assist answer — generating a DQL query for the top hosts by CPU usage" />
+      <figcaption>You go from intent to a working query without memorizing field names or functions.</figcaption>
+    </figure>
   </div>
 </section>
 <!-- SPEAKER NOTES: "This is the gateway drug. You describe what you want, Assist writes the DQL and even points you at the docs it drew from. Paste it into a notebook and run it. Now — someone give me a different metric and let's generate that query live." -->
@@ -342,13 +462,10 @@
         <span class="chip">no guesswork</span>
       </div>
     </div>
-    <div>
-      <div class="result">
-        <div class="rk">Result</div>
-        <div class="rv">A step-by-step breakdown: fetch logs &rarr; keep only errors &rarr; count per source entity &rarr; sort &rarr; top 5. In plain English.</div>
-      </div>
-      <p class="lead" style="margin-top:2vh;font-size:1.2vw">Perfect for reading a colleague's query, a dashboard tile, or an alert you didn't write.</p>
-    </div>
+    <figure class="shot">
+      <img src="slide_images/3.png" alt="Real Dynatrace Assist answer — explaining a DQL query clause by clause" />
+      <figcaption>Perfect for reading a colleague's query, a dashboard tile, or an alert you didn't write.</figcaption>
+    </figure>
   </div>
 </section>
 <!-- SPEAKER NOTES: "The reverse direction is just as valuable. You inherit a dashboard or an alert with a query you didn't write — paste it in and Assist explains it clause by clause. This is how people actually learn DQL: by reading, not memorizing. Anyone have a gnarly query on a tile right now? Send it." -->
@@ -366,13 +483,10 @@
         <span class="chip highlight">migration guidance</span>
       </div>
     </div>
-    <div>
-      <div class="result">
-        <div class="rk">Result</div>
-        <div class="rv">Ordered setup steps, a clear management-zone vs security-context comparison, and the Grail migration direction — with docs and community links.</div>
-      </div>
-      <p class="lead" style="margin-top:2vh;font-size:1.2vw">Configuration questions get answered in context, not by hunting through menus.</p>
-    </div>
+    <figure class="shot">
+      <img src="slide_images/4.png" alt="Real Dynatrace Assist answer — configuration help for management zones vs security contexts" />
+      <figcaption>Configuration questions get answered in context, not by hunting through menus.</figcaption>
+    </figure>
   </div>
 </section>
 <!-- SPEAKER NOTES: "Configuration is where a lot of tickets get born. Here Assist not only gives the steps, it explains the concept and even flags the direction of travel toward security contexts in Grail. That's the kind of nuance that usually needs an expert. Let's try a config question specific to your environment." -->
@@ -390,13 +504,10 @@
         <span class="chip highlight">what to check first</span>
       </div>
     </div>
-    <div>
-      <div class="result">
-        <div class="rk">Result</div>
-        <div class="rv">A clear explanation, the usual suspects (app errors, resources, config, permissions, network), and an ordered checklist — with community troubleshooting links.</div>
-      </div>
-      <p class="lead" style="margin-top:2vh;font-size:1.2vw">No ticket needed for "what does this mean?" — the answer and next step arrive in seconds.</p>
-    </div>
+    <figure class="shot">
+      <img src="slide_images/5.png" alt="Real Dynatrace Assist answer — first-line support for a Kubernetes back-off restarting error" />
+      <figcaption>No ticket needed for "what does this mean?" — the answer and next step arrive in seconds.</figcaption>
+    </figure>
   </div>
 </section>
 <!-- SPEAKER NOTES: "This is the 'don't open a ticket for small things' use case. A cryptic Kubernetes event becomes a plain-English explanation plus a ranked checklist of what to check first. Your L1 team just got a lot more self-sufficient. Paste in any error string you're staring at right now." -->
@@ -414,13 +525,10 @@
         <span class="chip highlight">logs + traces</span>
       </div>
     </div>
-    <div>
-      <div class="result">
-        <div class="rk">Result</div>
-        <div class="rv">A guided path: failure analysis &rarr; deployment events &rarr; downstream dependencies &rarr; linked logs &rarr; distributed traces &rarr; Davis root cause.</div>
-      </div>
-      <p class="lead" style="margin-top:2vh;font-size:1.2vw">Assist connects the signals that already live in the platform into one investigation.</p>
-    </div>
+    <figure class="shot">
+      <img src="slide_images/6.png" alt="Real Dynatrace Assist answer — troubleshooting and correlating a service failure-rate spike" />
+      <figcaption>Assist connects the signals that already live in the platform into one investigation.</figcaption>
+    </figure>
   </div>
 </section>
 <!-- SPEAKER NOTES: "This is the correlation superpower. Instead of you manually hopping between deployments, dependencies, logs and traces, Assist lays out the investigation path and points at the right views. It's stitching together data that's already in the platform. Let's run this against a real service in the environment." -->
@@ -439,13 +547,65 @@
 </section>
 <!-- SPEAKER NOTES: "Here's where it gets fun — the non-obvious uses. Onboarding by conversation. Building dashboards by describing them. Rehearsing blast radius before an incident, not during one. These are the ideas that make people say 'oh, I hadn't thought of that.' What's a creative use you can imagine for your team?" -->
 
-<!-- 16 · Marker — your turn / go live ────────────── -->
+<!-- 16 · More unique use cases ──────────────────── -->
+<section class="slide">
+  <div class="kicker">Act 2 · power-user plays</div>
+  <h2>Four more that surprise people</h2>
+  <ul>
+    <li><b>Postmortem in one paste</b> — "summarize the root cause, timeline and business impact so I can drop it into a postmortem" &rarr; a structured RCA draft, ready to reuse.</li>
+    <li><b>Kill the alert noise</b> — "this service alerts too much — how do I reduce overalerting and tune anomaly detection?" &rarr; cited, step-by-step tuning guidance.</li>
+    <li><b>Speak to the business</b> — "explain this payment slowdown to a non-technical stakeholder in three sentences" &rarr; an impact-first summary a manager can read.</li>
+    <li><b>Design an SLO</b> — "help me define an SLO for checkout: which SLI, what target, how do I measure it?" &rarr; SLI, target, and the DQL to track it.</li>
+  </ul>
+  <div class="callout">Every one of these was validated live — grounded in your platform, sourced, and ready to reuse.</div>
+</section>
+<!-- SPEAKER NOTES: "These are the ones that get the 'wait, it does that?' reaction. Drafting a postmortem, tuning noisy alerts, translating an incident for a manager, even scaffolding an SLO. I validated all four while building this deck — the answers came back structured and sourced. Which of these four would save your team the most time?" -->
+
+<!-- 17 · Prompting best practices ────────────────── -->
+<section class="slide">
+  <div class="kicker">Act 2 · coach your users</div>
+  <h2>Prompting best practices</h2>
+  <p class="lead">The quality of the answer follows the quality of the prompt. These are the habits to teach even your most non-technical users.</p>
+  <ul>
+    <li><b>Be specific</b> — name the entity, the metric, and the timeframe.</li>
+    <li><b>Give context and your goal</b> — "I'm troubleshooting X and want to achieve Y."</li>
+    <li><b>One question at a time</b> — split multi-part asks into separate prompts.</li>
+    <li><b>Ask for a format</b> — "as a DQL query", "as a table", or "in plain English".</li>
+    <li><b>Use Dynatrace terms</b> — DQL, Smartscape, Davis, problem, SLO — they sharpen intent.</li>
+    <li><b>Never paste secrets or PII</b> — describe the shape of data, not the sensitive values.</li>
+    <li><b>Keep every prompt under 10,000 characters</b> — split long context into follow-ups.</li>
+    <li><b>Iterate and verify</b> — refine with follow-ups, and always open the source links.</li>
+  </ul>
+</section>
+<!-- SPEAKER NOTES: "This slide is the one to screenshot. Layman users get vague answers because they write vague prompts — so coach these habits. Be specific, give context, one question at a time, ask for a format. And a hard rule people forget: keep any single prompt under ten thousand characters, and split longer context into follow-ups. Never paste secrets, and always verify the sources." -->
+
+<!-- 18 · Anatomy of a good prompt ────────────────── -->
+<section class="slide">
+  <div class="kicker">Act 2 · vague in, vague out</div>
+  <h2>Same assistant, very different answer</h2>
+  <div class="cols">
+    <div class="card critb">
+      <div class="kicker crit">Weak prompt</div>
+      <div class="qbox" style="border-left-color:var(--critical);font-size:1.3vw">"why is it slow?"</div>
+      <p class="lead" style="font-size:1.1vw;margin-top:1.6vh">No entity, no metric, no timeframe, no goal — the assistant has to guess.</p>
+    </div>
+    <div class="card acc">
+      <div class="kicker">Strong prompt</div>
+      <div class="qbox" style="font-size:1.3vw">"The checkout-service p95 response time spiked around 14:00 today. Correlate it with recent deployments and downstream dependencies to find the root cause."</div>
+      <p class="lead" style="font-size:1.1vw;margin-top:1.6vh">Entity + metric + timeframe + goal — a focused, actionable answer.</p>
+    </div>
+  </div>
+  <p class="lead" style="margin-top:2.4vh">Teach the <b style="color:var(--primary-strong)">shape</b> of a good prompt, not the exact words — that's what sticks.</p>
+</section>
+<!-- SPEAKER NOTES: "Let's make it concrete. 'Why is it slow' forces the assistant to guess everything. The strong version names the service, the metric, the time, and the goal — and gets a focused answer. Don't ask people to memorize magic phrases; teach them this shape: entity, metric, timeframe, goal." -->
+
+<!-- 19 · Marker — your turn / go live ────────────── -->
 <section class="slide marker">
   <div class="go">&#9654;</div>
   <h1 style="font-size:3.4vw">Your turn</h1>
-  <p class="lead" style="text-align:center;max-width:60ch">Open Dynatrace Assist in the platform and fire your first prompt. I'll take three from the room right now.</p>
+  <p class="lead" style="text-align:center;max-width:60ch">Open Dynatrace Assist in the platform and fire your first prompt — entity, metric, timeframe, goal. I'll take three from the room right now.</p>
 </section>
-<!-- SPEAKER NOTES: "Switch to the live platform. Open Assist, and let's take three real prompts from the room. Don't overthink the wording — just ask what you actually want to know, and we'll refine together." -->
+<!-- SPEAKER NOTES: "Switch to the live platform. Open Assist, and let's take three real prompts from the room. Remember the shape we just covered — entity, metric, timeframe, goal — and we'll refine together." -->
 
 <!-- 17 · What just happened (payoff) ─────────────── -->
 <section class="slide">
@@ -511,17 +671,17 @@
 <section class="slide">
   <div class="kicker">Act 3 · the honest counter-beat</div>
   <h2>Why grounding and sources matter</h2>
-  <div class="stats" style="grid-template-columns:repeat(2,1fr);max-width:70ch">
+  <div class="stats" style="grid-template-columns:repeat(2,1fr)">
     <div class="stat" style="border-color:var(--critical)">
       <div class="num crit">66%</div>
       <div class="cap">of developers' biggest AI frustration: answers that are "almost right, but not quite"
-        <span class="src">Stack Overflow · 2025 Developer Survey · 2025</span>
+        <span class="src">Stack Overflow · 2025 Developer Survey</span>
       </div>
     </div>
     <div class="stat">
       <div class="num warn">46%</div>
       <div class="cap">distrust AI accuracy, versus just 33% who trust it — verification is non-negotiable
-        <span class="src">Stack Overflow · 2025 Developer Survey · 2025</span>
+        <span class="src">Stack Overflow · 2025 Developer Survey</span>
       </div>
     </div>
   </div>
@@ -579,10 +739,14 @@
     <span class="lit">Onboarding &amp; learning</span>
     <span class="lit">Dashboard building</span>
     <span class="lit">Runbook rehearsal</span>
+    <span class="lit">Postmortem drafting</span>
+    <span class="lit">Alert-noise tuning</span>
+    <span class="lit">SLO design</span>
+    <span class="lit">Stakeholder comms</span>
     <span class="lit">Recommendations</span>
     <span>Autonomous multi-step actions (agentic, opt-in)</span>
   </div>
-  <p class="lead" style="margin-top:3vh">Thirteen everyday jobs today — with agentic actions available when you choose to switch them on.</p>
+  <p class="lead" style="margin-top:3vh">Seventeen everyday jobs today — with agentic actions available when you choose to switch them on.</p>
 </section>
 <!-- SPEAKER NOTES: "Here's the full surface area we've touched today, lit up. Thirteen everyday jobs from a single conversation. The one that isn't lit — autonomous multi-step actions — is agentic AI, which you opt into deliberately. Everything else is available to your team right now." -->
 
@@ -643,7 +807,15 @@
   <div class="logo">
     <img src="../../assets/dynatrace-logo-1.svg" alt="Dynatrace" height="30" style="display:block" />
   </div>
-  <span class="topbar-counter"><span id="cur">1</span>&thinsp;/&thinsp;<span id="tot">0</span></span>
+  <div class="actbar">
+    <span class="actstep" data-a="1">Act 1 · Concept</span>
+    <span class="actstep" data-a="2">Act 2 · Live</span>
+    <span class="actstep" data-a="3">Act 3 · Outcomes</span>
+  </div>
+  <div class="topbar-right">
+    <a class="cheat-link" href="facilitator-cheatsheet.html" target="_blank" rel="noopener">Facilitator cheatsheet &#8599;</a>
+    <span class="topbar-counter"><span id="cur">1</span>&thinsp;/&thinsp;<span id="tot">0</span></span>
+  </div>
 </div>
 
 <!-- footerbar: series label left, nav hint right -->
@@ -659,11 +831,32 @@
   let i = 0;
   const tot = slides.length;
   document.getElementById('tot').textContent = String(tot);
+
+  // Each slide's act (0 = intro) comes from an explicit data-act or its kicker, inheriting forward.
+  const steps = Array.from(document.querySelectorAll('.actstep'));
+  let lastAct = '0';
+  const acts = slides.map((s) => {
+    let a = s.dataset.act;
+    if (!a) {
+      const k = s.querySelector('.kicker');
+      const m = k && k.textContent.match(/Act\s*([123])/i);
+      a = m ? m[1] : lastAct;
+    }
+    lastAct = a;
+    return a;
+  });
+
   function show(n) {
     i = Math.max(0, Math.min(tot - 1, n));
     slides.forEach((s, idx) => s.classList.toggle('active', idx === i));
     document.getElementById('cur').textContent = String(i + 1);
     document.getElementById('bar').style.width = ((i + 1) / tot * 100) + '%';
+    const act = acts[i];
+    steps.forEach((el) => {
+      const a = el.dataset.a;
+      el.classList.toggle('active', a === act);
+      el.classList.toggle('done', act !== '0' && Number(a) < Number(act));
+    });
   }
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { show(i + 1); e.preventDefault(); }
@@ -676,6 +869,7 @@
     }
   });
   document.addEventListener('click', (e) => {
+    if (e.target.closest('a') || e.target.closest('.topbar') || e.target.closest('.footerbar')) { return; }
     if (e.clientX > window.innerWidth * 0.5) { show(i + 1); } else { show(i - 1); }
   });
   show(0);

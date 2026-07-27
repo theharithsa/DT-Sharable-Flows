@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dynatrace Assist — Prompt Cheat-Sheet (A4)</title>
+  <style>
+    /* ── Fonts (co-located OTFs) ─────────────────────── */
+    @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Regular.otf') format('opentype'); font-weight: 400; font-display: swap; }
+    @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Medium.otf') format('opentype'); font-weight: 500; font-display: swap; }
+    @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Semibold.otf') format('opentype'); font-weight: 600; font-display: swap; }
+    @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Bold.otf') format('opentype'); font-weight: 700; font-display: swap; }
+
+    /* ── Print geometry: one A4 page ─────────────────── */
+    @page { size: A4 portrait; margin: 9mm; }
+
+    :root {
+      --ink: #1b1b2f;
+      --muted: #55566f;
+      --accent: #5b5ee0;
+      --accent-soft: #edeefb;
+      --line: #d7d8ea;
+      --code-bg: #f4f4fb;
+      --ok: #2f8f83;
+      --warn: #b9740f;
+      --crit: #d1494c;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #e9e9f2;
+      color: var(--ink);
+      font-family: 'DynatraceFlow', 'Segoe UI', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Screen preview wrapper mimics an A4 sheet */
+    .sheet {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 8mm auto;
+      padding: 9mm;
+      background: #fff;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, .18);
+    }
+
+    /* ── Header ──────────────────────────────────────── */
+    .head { display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--accent); padding-bottom: 6px; }
+    .head img { height: 24px; }
+    .head .titles { line-height: 1.15; }
+    .head h1 { margin: 0; font-size: 15pt; font-weight: 700; letter-spacing: -.01em; }
+    .head .sub { font-size: 7.4pt; color: var(--muted); margin-top: 1px; }
+    .head .badge { margin-left: auto; font-size: 6.6pt; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 3px 9px; font-weight: 600; white-space: nowrap; }
+
+    /* ── Card grid ───────────────────────────────────── */
+    .grid { column-count: 2; column-gap: 6mm; margin-top: 6px; }
+
+    .card {
+      break-inside: avoid;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 6px 7px 7px;
+      margin: 0 0 5px;
+      background: #fff;
+    }
+    .card .tag {
+      display: inline-block;
+      font-size: 6.4pt;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-radius: 4px;
+      padding: 1px 6px;
+      margin-bottom: 3px;
+    }
+    .card .who { font-size: 6.4pt; color: var(--muted); float: right; margin-top: 1px; }
+    .card pre {
+      font-family: 'Cascadia Code', 'Consolas', ui-monospace, monospace;
+      font-size: 6.9pt;
+      line-height: 1.32;
+      background: var(--code-bg);
+      border-left: 2px solid var(--accent);
+      border-radius: 3px;
+      margin: 0;
+      padding: 4px 6px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #23233b;
+    }
+    .card .exp { font-size: 6.6pt; color: var(--muted); margin-top: 3px; line-height: 1.3; }
+    .card .exp b { color: var(--ink); font-weight: 600; }
+
+    /* ── Rules + shape footer ────────────────────────── */
+    .rules { break-inside: avoid; border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; margin-top: 2px; background: #fbfbff; }
+    .rules h2 { margin: 0 0 4px; font-size: 8.4pt; font-weight: 700; color: var(--accent); }
+    .rules ul { margin: 0; padding-left: 14px; column-count: 2; column-gap: 6mm; }
+    .rules li { font-size: 6.9pt; line-height: 1.4; margin-bottom: 2px; break-inside: avoid; }
+    .rules li b { font-weight: 600; }
+    .rules .k10 { color: var(--crit); font-weight: 700; }
+
+    .shape { break-inside: avoid; display: flex; gap: 6mm; margin-top: 5px; }
+    .shape .col { flex: 1; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+    .shape .col h3 { margin: 0 0 3px; font-size: 7.2pt; letter-spacing: .03em; text-transform: uppercase; }
+    .shape .weak h3 { color: var(--crit); }
+    .shape .strong h3 { color: var(--ok); }
+    .shape p { margin: 0; font-size: 6.9pt; line-height: 1.34; color: var(--ink); }
+    .shape .weak p { color: var(--muted); }
+    .shape .parts { margin-top: 3px; font-size: 6.4pt; color: var(--muted); }
+    .shape .parts b { color: var(--accent); }
+
+    .foot { margin-top: 7px; padding-top: 5px; border-top: 1px solid var(--line); font-size: 6.2pt; color: var(--muted); display: flex; justify-content: space-between; }
+    .foot b { color: var(--ink); }
+
+    /* ── Print button (screen only) ──────────────────── */
+    .printbtn {
+      position: fixed; top: 14px; right: 14px; z-index: 10;
+      font-family: inherit; font-size: 10pt; font-weight: 600;
+      color: #fff; background: var(--accent); border: 0; border-radius: 8px;
+      padding: 9px 16px; cursor: pointer; box-shadow: 0 2px 10px rgba(91, 94, 224, .4);
+    }
+    .printbtn:hover { background: #4a4dd0; }
+
+    @media print {
+      html, body { background: #fff; }
+      .sheet { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
+      .printbtn { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <button class="printbtn" onclick="window.print()">Print / Save as PDF</button>
+
+  <div class="sheet">
+    <div class="head">
+      <img src="dynatrace-logo-1.svg" alt="Dynatrace" />
+      <div class="titles">
+        <h1>Dynatrace Assist — Prompt Cheat-Sheet</h1>
+        <div class="sub">Your AI copilot, inside the platform · ask in plain English, verify the source · no ticket for the small stuff</div>
+      </div>
+      <span class="badge">DUG Enablement Series</span>
+    </div>
+
+    <div class="grid">
+
+      <div class="card">
+        <span class="tag">Generate DQL</span><span class="who">Platform / SRE</span>
+        <pre>Generate a DQL query showing the top 10 hosts
+by CPU usage over the last 2 hours, averaged
+per host.</pre>
+        <div class="exp"><b>Get:</b> a runnable <code>timeseries</code> query + links to the DQL docs. Try "same but memory" or "top 5 services by response time."</div>
+      </div>
+
+      <div class="card">
+        <span class="tag">Explain DQL</span><span class="who">Developer</span>
+        <pre>Explain what this query does:
+fetch logs | filter loglevel == "ERROR"
+| summarize count(), by:{dt.source_entity}
+| sort `count()` desc | limit 5</pre>
+        <div class="exp"><b>Get:</b> a clause-by-clause plain-English breakdown. Paste any query from a real tile or alert.</div>
+      </div>
+
+      <div class="card">
+        <span class="tag">Configuration help</span><span class="who">Platform / SRE</span>
+        <pre>How do I configure a management zone, and
+what is the difference between a management
+zone and a security context?</pre>
+        <div class="exp"><b>Get:</b> ordered setup steps + a clear comparison + Grail migration note, with docs &amp; community links.</div>
+      </div>
+
+      <div class="card">
+        <span class="tag">First-line support</span><span class="who">L1 / NOC</span>
+        <pre>A pod shows "Back-off restarting failed
+container". Explain what it means, the common
+root causes, and what I should check first.</pre>
+        <div class="exp"><b>Get:</b> plain meaning, ranked causes, and an ordered checklist. The "don't open a ticket" moment — paste any error string.</div>
+      </div>
+
+      <div class="card">
+        <span class="tag">Troubleshoot &amp; correlate</span><span class="who">Developer</span>
+        <pre>My service's failure rate spiked. How do I use
+Dynatrace to correlate it with recent deploys,
+dependency problems, and error logs to find
+the root cause?</pre>
+        <div class="exp"><b>Get:</b> a guided path — Failure Analysis → deploy events → dependencies → linked logs → Davis root cause.</div>
+      </div>
+
+      <div class="card">
+        <span class="tag">Postmortem draft</span><span class="who">Any</span>
+        <pre>Summarize the root cause, timeline, and
+business impact of a recent problem in a format
+I can paste into a post-incident review.</pre>
+        <div class="exp"><b>Get:</b> a structured <b>Root Cause / Timeline / Business Impact</b> draft. Turns a 30-min write-up into a first draft.</div>
+      </div>
+
+      <div class="card">
+        <span class="tag">Tune alert noise</span><span class="who">SRE</span>
+        <pre>One service generates too many alerts. How do
+I reduce overalerting and tune anomaly
+detection so I only get meaningful problems?</pre>
+        <div class="exp"><b>Get:</b> cited, step-by-step tuning — thresholds, detection model, sliding windows, event correlation.</div>
+      </div>
+
+      <div class="card">
+        <span class="tag">Speak to the business</span><span class="who">Any</span>
+        <pre>Explain this payment-service slowdown to a
+non-technical stakeholder in three plain
+sentences — impact and status only.</pre>
+        <div class="exp"><b>Get:</b> a three-sentence, impact-first summary, no jargon. The "forward this to your manager" button.</div>
+      </div>
+
+      <div class="card">
+        <span class="tag">Design an SLO</span><span class="who">Reliability</span>
+        <pre>Help me define an SLO for a checkout service.
+What SLI should I pick, what is a reasonable
+target, and how do I measure it in Dynatrace?</pre>
+        <div class="exp"><b>Get:</b> SLI options, sensible targets (e.g. 99.9% / 30 days), and a measurement path with Create-SLO docs.</div>
+      </div>
+
+      <div class="card">
+        <span class="tag">Privacy &amp; controls</span><span class="who">Security</span>
+        <pre>For Dynatrace Assist: how is my data handled
+for privacy? Is my observability data used to
+train the models? What controls do admins get?</pre>
+        <div class="exp"><b>Get:</b> not used for training · data isolation · encryption · RBAC · admin toggles under <b>Settings › Dynatrace Intelligence</b> · auditable.</div>
+      </div>
+
+    </div>
+
+    <div class="rules">
+      <h2>Prompting best practices</h2>
+      <ul>
+        <li><b>Name the entity</b> — service, host, or pod, not "the thing."</li>
+        <li><b>Give a timeframe</b> — "last 2 hours", "since the deploy."</li>
+        <li><b>State the goal</b> — a query, an explanation, or next steps.</li>
+        <li><b>One question at a time</b> — chain follow-ups, don't stack.</li>
+        <li><b>Paste the real error</b> — exact strings beat paraphrases.</li>
+        <li><b>Always read the sources</b> — trust, then verify.</li>
+        <li><b>Iterate</b> — "shorter", "as DQL", "for a manager."</li>
+        <li class="k10">Keep every prompt under 10,000 characters.</li>
+      </ul>
+    </div>
+
+    <div class="shape">
+      <div class="col weak">
+        <h3>Weak prompt</h3>
+        <p>"Why is it slow?"</p>
+      </div>
+      <div class="col strong">
+        <h3>Strong prompt</h3>
+        <p>"Why did the <b>checkout service</b> response time spike in the <b>last 30 minutes</b>, and <b>what should I check first</b>?"</p>
+        <div class="parts"><b>Entity</b> + <b>metric</b> + <b>timeframe</b> + <b>goal</b> = a grounded, cited answer.</div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span><b>Enablement Series: Dynatrace Assist</b> · A Part of Dynatrace User Group Initiative · India SDO (Customer Success)</span>
+      <span>Prompts validated live · read every answer <b>with</b> its sources</span>
+    </div>
+  </div>
+</body>
+
+</html>
