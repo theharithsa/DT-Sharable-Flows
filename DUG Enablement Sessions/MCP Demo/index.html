@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="icon" type="image/png" href="favicon.png" />
+<link rel="icon" type="image/png" href="../../assets/favicon.png" />
 <title>Talking to Dynatrace in plain English — the Dynatrace MCP server</title>
-<!-- DynatraceFlow loaded from local OTF files in the same folder -->
+<!-- DynatraceFlow loaded from central repo assets folder -->
 <style>
-  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Hairline.otf') format('opentype'); font-weight: 100; font-style: normal; }
-  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Thin.otf') format('opentype'); font-weight: 200; font-style: normal; }
-  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Extralight.otf') format('opentype'); font-weight: 300; font-style: normal; }
-  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Light.otf') format('opentype'); font-weight: 350; font-style: normal; }
-  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Regular.otf') format('opentype'); font-weight: 400; font-style: normal; }
-  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Medium.otf') format('opentype'); font-weight: 500; font-style: normal; }
-  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Semibold.otf') format('opentype'); font-weight: 600; font-style: normal; }
-  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Bold.otf') format('opentype'); font-weight: 700; font-style: normal; }
-  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Extrabold.otf') format('opentype'); font-weight: 800; font-style: normal; }
-  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Heavy.otf') format('opentype'); font-weight: 900; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Hairline.otf') format('opentype'); font-weight: 100; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Thin.otf') format('opentype'); font-weight: 200; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Extralight.otf') format('opentype'); font-weight: 300; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Light.otf') format('opentype'); font-weight: 350; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Regular.otf') format('opentype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Medium.otf') format('opentype'); font-weight: 500; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Semibold.otf') format('opentype'); font-weight: 600; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Bold.otf') format('opentype'); font-weight: 700; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Extrabold.otf') format('opentype'); font-weight: 800; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Heavy.otf') format('opentype'); font-weight: 900; font-style: normal; }
 
   /* Static-media literals = exact Strato design-token hex; token name given per variable.
      Source: https://developer.dynatrace.com/design/design-tokens/Colors/ (dark theme). */
@@ -495,7 +495,7 @@
 <!-- topbar: logo left, counter right -->
 <div class="topbar">
   <div class="logo">
-    <img src="dynatrace-logo-1.svg" alt="Dynatrace" height="30" style="display:block" />
+    <img src="../../assets/dynatrace-logo-1.svg" alt="Dynatrace" height="30" style="display:block" />
   </div>
   <span class="topbar-counter"><span id="cur">1</span>&thinsp;/&thinsp;<span id="tot">25</span></span>
 </div>
