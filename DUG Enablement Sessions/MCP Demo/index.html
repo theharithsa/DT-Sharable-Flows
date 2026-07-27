@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" type="image/png" href="favicon.png" />
+<title>Talking to Dynatrace in plain English — the Dynatrace MCP server</title>
+<!-- DynatraceFlow loaded from local OTF files in the same folder -->
+<style>
+  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Hairline.otf') format('opentype'); font-weight: 100; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Thin.otf') format('opentype'); font-weight: 200; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Extralight.otf') format('opentype'); font-weight: 300; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Light.otf') format('opentype'); font-weight: 350; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Regular.otf') format('opentype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Medium.otf') format('opentype'); font-weight: 500; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Semibold.otf') format('opentype'); font-weight: 600; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Bold.otf') format('opentype'); font-weight: 700; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Extrabold.otf') format('opentype'); font-weight: 800; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('DTFlow-Heavy.otf') format('opentype'); font-weight: 900; font-style: normal; }
+
+  /* Static-media literals = exact Strato design-token hex; token name given per variable.
+     Source: https://developer.dynatrace.com/design/design-tokens/Colors/ (dark theme). */
+  :root {
+    --bg: #19192c;        /* Background.Base.Default */
+    --surface: #212135;   /* Background.Container.Neutral.Default */
+    --surface-2: #2a2a40; /* Background.Container.Neutral (raised) */
+    --border: #3b3b52;    /* Border.Neutral.Default */
+    --primary: #999bed;       /* Theme.Primary.70 */
+    --primary-strong: #b8bbff;/* Theme.Primary.90 */
+    --success: #6fc3ba;   /* Text.Success.Default */
+    --warning: #eea83f;   /* Text.Warning.Default */
+    --critical: #ff999c;  /* Text.Critical.Default */
+    --text: #ebecff;      /* Text.Neutral.Default */
+    --text-sub: #b1b2d2;  /* Text.Neutral.Subdued */
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--text); overflow: hidden;
+    /* Strato Typography — DynatraceFlow loaded locally */
+    font-family: 'DynatraceFlow', Helvetica, Arial, sans-serif;
+  }
+  .slide {
+    position: absolute; inset: 0; display: none;
+    flex-direction: column; justify-content: center;
+    padding: 8vh 9vw 6vh; animation: fade .35s ease;
+  }
+  .slide.active { display: flex; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  /* ── Typography ────────────────────────────── */
+  .kicker { color: var(--primary); font-size: .95vw; letter-spacing: .18em; text-transform: uppercase; font-weight: 600; margin-bottom: 1.2vh; display: flex; align-items: center; gap: .6vw; }
+  .kicker::before { content: ''; display: inline-block; width: 2px; height: 1em; background: var(--primary); border-radius: 2px; flex-shrink: 0; }
+  h1 { font-size: 3.8vw; line-height: 1.1; margin: 0 0 2vh; font-weight: 700; letter-spacing: -.02em; }
+  h1 .accent { color: var(--primary-strong); background: linear-gradient(90deg,var(--primary),var(--primary-strong)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  h2 { font-size: 2.4vw; line-height: 1.15; margin: 0 0 2.4vh; font-weight: 700; letter-spacing: -.015em; color: var(--text); }
+  h2::after { content: ''; display: block; width: 3.2vw; height: 3px; background: linear-gradient(90deg,var(--primary),transparent); border-radius: 2px; margin-top: .7vh; }
+  p.lead { font-size: 1.4vw; color: var(--text-sub); margin: 0 0 1.6vh; max-width: 72ch; line-height: 1.65; }
+  ul { font-size: 1.35vw; line-height: 1.75; margin: 0; padding-left: 1.2em; max-width: 78ch; }
+  ul li { margin-bottom: .7vh; }
+  ul li b { color: var(--primary-strong); font-weight: 600; }
+  .crit { color: var(--critical); } .warn { color: var(--warning); } .ok { color: var(--success); }
+  code { background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: .92em; color: var(--primary-strong); font-family: 'Courier New', Courier, monospace; }
+  .cols { display: flex; gap: 3vw; }
+  .cols > div { flex: 1; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 2.4vh 1.8vw; }
+  .card.acc { border-color: var(--primary); }
+  .card.critb { border-color: var(--critical); }
+  .card.okb { border-color: var(--success); }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.4vw; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-left: 5px solid var(--primary); border-radius: 10px; padding: 1.8vh 1.2vw; }
+  .step.root { border-left-color: var(--critical); }
+  .step.biz { border-left-color: var(--warning); }
+  .step .l { font-size: .9vw; text-transform: uppercase; letter-spacing: .06em; color: var(--text-sub); }
+  .step h4 { margin: .6vh 0 .4vh; font-size: 1.25vw; }
+  .step .m { font-size: 1vw; color: var(--text-sub); }
+  /* persona card template */
+  .persona { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4vw; align-items: start; }
+  .pbadge { display: inline-block; background: var(--primary); color: var(--bg); font-weight: 800; font-size: 1vw; letter-spacing: .04em; border-radius: 999px; padding: .5vh 1.4vw; margin-bottom: 1.6vh; }
+  .pbadge.sec { background: var(--critical); } .pbadge.biz { background: var(--warning); }
+  .qbox { background: var(--surface); border: 1px solid var(--border); border-left: 5px solid var(--primary); border-radius: 12px; padding: 2.2vh 1.6vw; font-size: 1.5vw; font-style: italic; color: var(--text); }
+  .chips { margin-top: 1.8vh; display: flex; flex-wrap: wrap; gap: .7vw; }
+  .chip { font-size: 1vw; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: .5vh 1vw; }
+  .chip.davis { border-color: var(--success); color: var(--success); }
+  .result { margin-top: 2vh; background: var(--surface); border: 1px solid var(--success); border-radius: 12px; padding: 2vh 1.6vw; }
+  .result .rk { color: var(--success); font-size: .95vw; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; margin-bottom: .8vh; }
+  .result .rv { font-size: 1.4vw; }
+  .arch { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 1.2vw; align-items: center; }
+  .node { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 2.4vh 1.4vw; text-align: center; }
+  .node.agent { border-color: var(--primary); } .node.dt { border-color: var(--success); }
+  .node h4 { margin: 0 0 .8vh; font-size: 1.4vw; }
+  .node p { margin: 0; font-size: 1vw; color: var(--text-sub); }
+  .conn { font-size: 2.4vw; color: var(--primary); text-align: center; }
+  .payoff { display: grid; grid-template-columns: 1fr auto 1fr; gap: 2vw; align-items: center; text-align: center; }
+  .payoff .big { font-size: 5vw; font-weight: 800; }
+  .payoff .before .big { color: var(--critical); } .payoff .after .big { color: var(--success); }
+  .payoff p { color: var(--text-sub); font-size: 1.2vw; }
+  .payoff .vs { font-size: 3vw; color: var(--text-sub); }
+  .taxo { display: flex; flex-wrap: wrap; gap: .9vw; max-width: 80ch; }
+  .taxo span { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: .7vh 1.2vw; font-size: 1.1vw; }
+  .taxo span.lit { border-color: var(--primary); color: var(--primary-strong); }
+  /* data-instrumentation table */
+  .dtable { width: 100%; border-collapse: collapse; font-size: 1.2vw; }
+  .dtable th { color: var(--text-sub); font-weight: 600; text-align: left; padding: .9vh 1vw; border-bottom: 1px solid var(--border); font-size: 1vw; text-transform: uppercase; letter-spacing: .06em; }
+  .dtable td { padding: .9vh 1vw; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.4; }
+  .dtable tr:last-child td { border-bottom: none; }
+  .dtable td:first-child { color: var(--primary-strong); font-weight: 600; white-space: nowrap; }
+  .dtable td:last-child { color: var(--text-sub); font-style: italic; }
+  .callout { background: var(--surface); border: 1px solid var(--primary); border-radius: 12px; padding: 1.6vh 1.4vw; font-size: 1.2vw; color: var(--text); margin-top: 2.4vh; }
+  /* industry-stat cards */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6vw; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 2.6vh 1.4vw; }
+  .stat.acc { border-color: var(--primary); }
+  .stat .num { font-size: 3.4vw; font-weight: 800; line-height: 1; color: var(--primary-strong); }
+  .stat .num.ok { color: var(--success); } .stat .num.warn { color: var(--warning); } .stat .num.crit { color: var(--critical); }
+  .stat .cap { font-size: 1.1vw; color: var(--text); margin-top: 1.2vh; line-height: 1.4; }
+  .src { display: block; margin-top: .9vh; font-size: .82vw; color: var(--text-sub); letter-spacing: .02em; }
+  .marker { align-items: center; justify-content: center; text-align: center; }
+  .marker .go { font-size: 6vw; color: var(--primary); line-height: 1; margin-bottom: 2vh; }
+  /* ── Chrome / frame ─────────────────────── */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 52px; z-index: 20;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2.2vw;
+  }
+  .logo { display: flex; align-items: center; text-decoration: none; }
+  .topbar-counter { font-size: 12px; color: var(--text-sub); letter-spacing: .04em; }
+  .footerbar {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 38px; z-index: 20;
+    background: var(--bg); border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2.2vw;
+  }
+  .footer-series { font-size: 11px; color: var(--text-sub); letter-spacing: .03em; }
+  .footer-series b { color: var(--primary); font-weight: 600; }
+  .footer-hint { font-size: 11px; color: var(--border); letter-spacing: .02em; }
+  .bar { position: fixed; bottom: 38px; left: 0; height: 2px; background: linear-gradient(90deg,var(--primary),var(--primary-strong)); transition: width .3s; z-index: 21; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================= -->
+<!-- ACT 1 — TEACH MCP  (problem-agnostic; no incident data)        -->
+<!-- ============================================================= -->
+
+<!-- 1 Title -->
+<section class="slide active">
+  <div class="kicker">Dynatrace MCP server · live technical session</div>
+  <h1>Talking to Dynatrace<br /><span class="accent">in plain English</span></h1>
+  <p class="lead">An AI agent that asks Dynatrace your questions for you — across observability, security, and business data — through one open protocol. We'll teach it, then prove it live.</p>
+</section>
+
+<!-- 2 The 3 a.m. reality -->
+<section class="slide">
+  <div class="kicker">Act 1 · the problem with troubleshooting</div>
+  <h2>It's 3 a.m. — and the work is mostly archaeology</h2>
+  <ul>
+    <li><b>Find the data</b> — dozens of dashboards, screens, and tools, none of them in one place</li>
+    <li><b>Correlate the data</b> — manually line up a metric here against a log there against a trace somewhere else</li>
+    <li><b>Validate the data</b> — write the query, doubt the query, rewrite the query</li>
+  </ul>
+  <p class="lead" style="margin-top:2.4vh">Your most skilled engineers spend hours <b style="color:var(--primary-strong)">hunting for answers</b> the platform already holds. That's the tax MCP removes.</p>
+</section>
+
+<!-- 3 What is MCP -->
+<section class="slide">
+  <div class="kicker">Act 1 · concept 1 of 5</div>
+  <h2>What is MCP — the "USB-C for AI"</h2>
+  <ul>
+    <li>An <b>open protocol</b> that lets any AI agent plug into any tool or data source through one standard interface</li>
+    <li><b>Vendor-neutral, model-neutral</b> — no bespoke integration per tool; the agent speaks one language to everything</li>
+    <li>The <b>Dynatrace MCP server</b> exposes Dynatrace — problems, logs, spans, vulnerabilities, bizevents, Davis AI — as tools an agent can call</li>
+    <li>Today: GitHub Copilot in VS Code, talking to Dynatrace, live</li>
+  </ul>
+</section>
+
+<!-- 4 MCP vs Assist -->
+<section class="slide">
+  <div class="kicker">Act 1 · concept 2 of 5</div>
+  <h2>MCP doesn't compete with Davis Assist — it uses it</h2>
+  <div class="arch">
+    <div class="node agent"><h4>AI agent</h4><p>plain-English questions</p></div>
+    <div class="conn">&#8644;</div>
+    <div class="node"><h4>Dynatrace MCP</h4><p>orchestrates many tools incl.<br /><code>chat_with_davis_copilot</code></p></div>
+    <div class="conn">&#8644;</div>
+    <div class="node dt"><h4>Dynatrace + Davis</h4><p>Grail data + Davis AI</p></div>
+  </div>
+  <p class="lead" style="margin-top:3vh"><b style="color:var(--primary-strong)">Davis Assist makes Dynatrace smarter. MCP makes your whole workflow smarter</b> — and calls Assist as just one of its tools.</p>
+</section>
+
+<!-- 5 What's new -->
+<section class="slide">
+  <div class="kicker">Act 1 · concept 3 of 5</div>
+  <h2>What's new in the MCP approach</h2>
+  <ul>
+    <li>Natural language &#8594; <b>validated DQL</b> (generate, verify, explain — then run)</li>
+    <li><b>Cross-tool orchestration</b> in one conversation — problems, logs, vulnerabilities, notebooks, Slack</li>
+    <li><b>Agentic + in-IDE</b> — the investigation happens where you already work</li>
+    <li>Moving to a <b>Remote MCP server + dtctl</b> for team-scale, governed access</li>
+  </ul>
+</section>
+
+<!-- 6 The MCP toolbox -->
+<section class="slide">
+  <div class="kicker">Act 1 · concept 4 of 5</div>
+  <h2>One agent, one toolbox — across three domains</h2>
+  <div class="chips" style="margin-top:1vh">
+    <span class="chip">list_problems</span>
+    <span class="chip">find_entity_by_name</span>
+    <span class="chip">generate_dql</span>
+    <span class="chip">verify_dql</span>
+    <span class="chip">explain_dql</span>
+    <span class="chip">execute_dql</span>
+    <span class="chip">list_exceptions</span>
+    <span class="chip">list_vulnerabilities</span>
+    <span class="chip davis">chat_with_davis_copilot</span>
+    <span class="chip">create_dynatrace_notebook</span>
+    <span class="chip">send_slack_message</span>
+  </div>
+  <p class="lead" style="margin-top:3vh">The same agent reaches across <b style="color:var(--primary-strong)">observability, security, and business data</b> — no tool-switching, no context lost between them.</p>
+</section>
+
+<!-- 7 Why it matters -->
+<section class="slide">
+  <div class="kicker">Act 1 · concept 5 of 5</div>
+  <h2>Why it matters</h2>
+  <ul>
+    <li><b>Operational efficiency</b> — minutes to an answer instead of tiered handoffs</li>
+    <li><b>An AI-first organization</b> — your humans direct; the agent fetches and correlates</li>
+    <li><b>Experts freed</b> — they solve problems instead of doing manual data archaeology</li>
+    <li><b>One workflow</b> — detect, root-cause, secure, communicate, document — without leaving the conversation</li>
+  </ul>
+</section>
+
+<!-- ============================================================= -->
+<!-- ACT 2 — HAND OFF TO THE LIVE DEMO  (generic; no literal values)-->
+<!-- ============================================================= -->
+
+<!-- 8 Concepts are cheap -->
+<section class="slide">
+  <div class="kicker">Act 2 · the proof</div>
+  <h2>Concepts are cheap — let's prove it live</h2>
+  <div class="cols">
+    <div class="card critb"><div class="kicker crit">Why real data now</div><p class="lead" style="font-size:1.3vw">An AI demo on synthetic or hard-coded data proves nothing. The only honest test is a <b>real incident</b>, on a <b>real production tenant</b>, walked end to end.</p></div>
+    <div class="card acc"><div class="kicker">What you'll watch</div><p class="lead" style="font-size:1.3vw">Five escalation tiers each ask Dynatrace one plain-English question — and get an expert answer in minutes, not hours.</p></div>
+  </div>
+</section>
+
+<!-- 9 The war room -->
+<section class="slide">
+  <div class="kicker">Act 2 · how incidents really travel</div>
+  <h2>One incident, five tiers, a war room</h2>
+  <ul>
+    <li><b>L1 / NOC</b> gets paged first — knows nothing about the app internals</li>
+    <li>Escalates to <b>L2 / SRE</b> — starts correlating across dashboards</li>
+    <li>Hands off to the <b>application / dev team</b> — hunting for the exception</li>
+    <li><b>Security</b> gets pulled in — is this also an exposure?</li>
+    <li><b>Leadership</b> opens a <b>war room</b> — "how many customers, how much money?"</li>
+  </ul>
+  <p class="lead" style="margin-top:2.4vh">Every handoff loses context and burns time. In the demo, every tier just <b style="color:var(--primary-strong)">asks Dynatrace</b> instead.</p>
+</section>
+
+<!-- 10 Persona map -->
+<section class="slide">
+  <div class="kicker">Act 2 · the spine of the demo</div>
+  <h2>Five tiers, five questions, one thread</h2>
+  <ul>
+    <li><b>L1 / NOC</b> — "What's broken right now, and what's the likely root cause?"</li>
+    <li><b>L2 / SRE</b> — "Is the failing service caused by the root-cause problem?"</li>
+    <li><b>App / Dev</b> — "Which exception is it throwing — and on what line?"</li>
+    <li><b>Security</b> — "Are we also exposed on that same service?"</li>
+    <li><b>Leadership</b> — "How many customers, and write the exec summary" <span class="ok">(the WOW close)</span></li>
+  </ul>
+  <p class="lead" style="margin-top:2.2vh">The questions are the same in every org. The live screen fills in the names and the numbers.</p>
+</section>
+
+<!-- 11 Switch to VS Code -->
+<section class="slide marker">
+  <div class="go">&#10138;</div>
+  <h1 style="font-size:3.4vw">Switch to VS Code</h1>
+  <p class="lead" style="text-align:center;max-width:60ch">The live demo runs here. The incident detail is on the real screen — not on these slides.</p>
+</section>
+
+<!-- ============================================================= -->
+<!-- ACT 3 — OUTCOMES + INDUSTRY PROOF  (after the live demo)       -->
+<!-- ============================================================= -->
+
+<!-- 12 What just happened -->
+<section class="slide">
+  <div class="kicker">Act 3 · what you just saw</div>
+  <h2>What just happened to the war room</h2>
+  <div class="payoff">
+    <div class="before"><div class="big">Old way</div><p>Tiered handoffs across L1 &#8594; L2 &#8594; dev &#8594; security &#8594; leadership — hours long, context lost at every boundary</p></div>
+    <div class="vs">&#8594;</div>
+    <div class="after"><div class="big">MCP way</div><p>One agent, one conversation — detect, correlate, root-cause, secure, communicate, document — minutes long</p></div>
+  </div>
+  <p class="lead" style="margin-top:2.6vh;text-align:center">No one in that chat needed to know the query language or the internal service names.</p>
+</section>
+
+<!-- 13 What teams gain -->
+<section class="slide">
+  <div class="kicker">Act 3 · the outcomes</div>
+  <h2>What teams actually gain</h2>
+  <ul>
+    <li><b>Less toil</b> — the agent handles find / correlate / validate; engineers stop doing archaeology</li>
+    <li><b>Fewer handoffs</b> — each tier self-serves answers that used to require an escalation</li>
+    <li><b>Democratized expertise</b> — L1 produces L2-grade analysis; one agent answers obs, security, and business questions</li>
+    <li><b>Tool consolidation</b> — one interface instead of a dashboard tour</li>
+    <li><b>Faster, calmer response</b> — shorter MTTR, less war-room thrash, better comms</li>
+  </ul>
+</section>
+
+<!-- S1 Prerequisites -->
+<section class="slide">
+  <div class="kicker">Act 3 · before the agent can answer anything</div>
+  <h2>Dynatrace needs to know everything first</h2>
+  <div class="cols">
+    <div class="card" style="border-color:var(--primary)">
+      <div class="kicker">The three layers to instrument</div>
+      <ul style="font-size:1.2vw">
+        <li><b>Infrastructure</b> — OneAgent on every host, container, and K8s node; Smartscape topology auto-discovered. The agent's service map.</li>
+        <li><b>Application</b> — Distributed tracing (PurePath), service metrics, exception capture, real user monitoring. What is failing and where.</li>
+        <li><b>Business &amp; security</b> — BizEvents (logins, orders, payments); Application Security (runtime vulnerabilities). Answers "how many customers" and "are we exposed."</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="kicker">The MCP layer on top</div>
+      <ul style="font-size:1.2vw">
+        <li>Dynatrace MCP server: <code>npx @dynatrace-oss/dynatrace-mcp-server</code> — or Remote MCP + <code>dtctl</code> for teams</li>
+        <li>VS Code + GitHub Copilot (or any MCP-compatible AI client)</li>
+        <li>OAuth token: read problems, logs, metrics, vulnerabilities, entities, bizevents — write only for notebook / Slack</li>
+        <li>Grail cost guard: set <code>DT_GRAIL_QUERY_BUDGET_GB</code> to limit log-scan spend</li>
+      </ul>
+      <p class="lead" style="margin-top:1.6vh;font-size:1.1vw">The MCP server is only as powerful as the data behind it.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S2 Data taxonomy -->
+<section class="slide">
+  <div class="kicker">Act 3 · what data to bring in</div>
+  <h2>Every row you instrument is a new question the agent can answer</h2>
+  <table class="dtable">
+    <thead><tr><th>Data type</th><th>What to enable</th><th>Question it answers</th></tr></thead>
+    <tbody>
+      <tr><td>Infrastructure metrics</td><td>OneAgent on hosts &amp; K8s</td><td>"Which pod/node is the bottleneck?"</td></tr>
+      <tr><td>Distributed traces</td><td>PurePath auto-instrumentation</td><td>"Which service call failed? At which line?"</td></tr>
+      <tr><td>Application logs</td><td>Log ingest from all services</td><td>"What error is it throwing? Since when?"</td></tr>
+      <tr><td>Real user monitoring</td><td>Dynatrace RUM / OneAgent JS</td><td>"How many users are affected? What's the slowdown?"</td></tr>
+      <tr><td>Business events</td><td>BizEvents SDK / API</td><td>"How many orders/logins/trades are at risk?"</td></tr>
+      <tr><td>Security posture</td><td>Application Security addon</td><td>"What CVEs are on the failing service?"</td></tr>
+      <tr><td>Deployment events</td><td>OneAgent + CD pipeline webhook</td><td>"Did a deploy trigger this?"</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">The more context Dynatrace holds, the fewer escalations you need — and the more tiers the agent can self-serve in one conversation.</div>
+</section>
+
+<!-- S3 ROI floor -->
+<section class="slide">
+  <div class="kicker">Act 3 · the business case · conservative floor</div>
+  <h2>For every dollar you invest, operations returns at least $1.50</h2>
+  <p class="lead" style="margin:0 0 2vh">Conservative case — accounts only for MTTR reduction and toil. Excludes prevented incidents, tool consolidation, and faster onboarding.</p>
+  <div class="stats">
+    <div class="stat" style="border-color:var(--critical)">
+      <div class="num crit">$4,537</div>
+      <div class="cap">per minute — average cost of a customer-impacting incident<br />MTTR avg 175 min &#8594; <b>~$794K per incident</b><br />25 P1s/year &#8594; <b>$19.8M annual exposure</b><span class="src">PagerDuty · State of Digital Operations · 2024 · n=500 IT leaders</span></div>
+    </div>
+    <div class="stat" style="border-color:var(--warning)">
+      <div class="num warn">38%</div>
+      <div class="cap">of incident responder time is manual toil — mobilization, correlation, comms<br />Avg responder budget $1.9M &#8594; <b>$722K/year burned on toil</b><span class="src">PagerDuty · State of Digital Operations · 2024</span></div>
+    </div>
+    <div class="stat" style="border-color:var(--success)">
+      <div class="num ok">$1.66</div>
+      <div class="cap">returned per $1 invested — conservative<br />20% MTTR reduction: <b>$3.97M saved/year</b><br />25% toil reduction: <b>$180K saved/year</b><br />= ~$4.15M on ~$2.5M investment<span class="src">Industry benchmarks; rates are half of documented 40–60% norms</span></div>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:1.8vh">This is the floor. Forrester TEI studies on Dynatrace have historically shown 350–400%+ ROI for mature implementations. A technical audience respects a conservative number more than a headline.</div>
+</section>
+
+<!-- S4 Real multiplier -->
+<section class="slide">
+  <div class="kicker">Act 3 · the real multiplier</div>
+  <h2>The conservative case deliberately omits these</h2>
+  <ul>
+    <li><b>Prevented incidents</b> — earlier detection (lower MTTD) stops P2s becoming P1s. Each prevented incident at $794K is months of platform cost recovered.</li>
+    <li><b>Tool consolidation</b> — observability, security, and business analytics through one platform. Replacing 3–5 point tools is a six-figure saving by itself.</li>
+    <li><b>Engineering velocity</b> — every minute on manual data archaeology is a minute not spent on features. Not in the model.</li>
+    <li><b>Customer trust</b> — <span class="warn">90%</span> of IT leaders say outages reduced customer trust; churn, SLA penalties, and reputation damage excluded. <span style="color:var(--text-sub);font-size:.88em">(PagerDuty 2024)</span></li>
+    <li><b>Talent retention</b> — replacing one engineer costs 33% of their salary; incident stress drives turnover. Also excluded. <span style="color:var(--text-sub);font-size:.88em">(Atlassian / HRDive)</span></li>
+  </ul>
+  <div class="cols" style="margin-top:2.4vh;gap:2vw">
+    <div class="card" style="border-color:var(--primary);text-align:center"><div style="font-size:2.2vw;font-weight:800;color:var(--primary-strong)">$1 &#8594; $1.50</div><div style="font-size:1vw;color:var(--text-sub);margin-top:.6vh">Conservative floor<br />(MTTR + toil only)</div></div>
+    <div class="card okb" style="text-align:center"><div style="font-size:2.2vw;font-weight:800;color:var(--success)">$1 &#8594; $3.50–5.00</div><div style="font-size:1vw;color:var(--text-sub);margin-top:.6vh">Forrester TEI range<br />mature implementations</div></div>
+  </div>
+</section>
+
+<!-- 14 Adoption gap 1 -->
+<section class="slide">
+  <div class="kicker">Act 3 · industry proof · the adoption gap</div>
+  <h2>Adoption is near-universal — scaling is not</h2>
+  <div class="stats">
+    <div class="stat acc"><div class="num">88%</div><div class="cap">of organizations now use AI in at least one business function — up from 78% a year earlier<span class="src">McKinsey · The State of AI · Nov 2025</span></div></div>
+    <div class="stat"><div class="num warn">~2 / 3</div><div class="cap">have <b>not</b> yet scaled AI across the enterprise — most are still piloting<span class="src">McKinsey · The State of AI · Nov 2025</span></div></div>
+    <div class="stat"><div class="num ok">3&#215;</div><div class="cap">AI high performers are nearly 3&#215; more likely to have <b>fundamentally redesigned</b> their workflows<span class="src">McKinsey · The State of AI · Nov 2025</span></div></div>
+  </div>
+  <p class="lead" style="margin-top:2.8vh">Advantage no longer comes from <i>having</i> AI — it comes from <b style="color:var(--primary-strong)">redesigning the workflow around it</b>. That's exactly what MCP does to incident response.</p>
+</section>
+
+<!-- 15 Adoption gap 2 -->
+<section class="slide">
+  <div class="kicker">Act 3 · industry proof · agents are arriving</div>
+  <h2>The shift to agents is already underway</h2>
+  <div class="stats">
+    <div class="stat acc"><div class="num">62%</div><div class="cap">of organizations are at least <b>experimenting with AI agents</b>; ~23% are already scaling an agentic system<span class="src">McKinsey · The State of AI · Nov 2025</span></div></div>
+    <div class="stat"><div class="num ok">75%+</div><div class="cap">of technical practitioners rely on AI for at least one <b>daily</b> responsibility<span class="src">Google Cloud · DORA report · 2024</span></div></div>
+    <div class="stat"><div class="num">1 / 3</div><div class="cap">report <b>moderate-to-extreme</b> productivity gains from AI in their work<span class="src">Google Cloud · DORA report · 2024</span></div></div>
+  </div>
+  <p class="lead" style="margin-top:2.8vh">MCP is this agentic shift, applied to observability — an agent that <i>acts</i> across your platform, not just a chatbot that talks.</p>
+</section>
+
+<!-- 16 Trust & discipline -->
+<section class="slide">
+  <div class="kicker">Act 3 · the honest counter-beat</div>
+  <h2>Fast-but-wrong AI is worse than no AI</h2>
+  <div class="stats" style="grid-template-columns:repeat(2,1fr);max-width:70ch">
+    <div class="stat critb" style="border-color:var(--critical)"><div class="num crit">~39%</div><div class="cap">report <b>little-to-no trust</b> in AI-generated output<span class="src">Google Cloud · DORA report · 2024</span></div></div>
+    <div class="stat"><div class="num warn">#1</div><div class="cap"><b>Inaccuracy</b> is the most-cited risk among AI-using organizations<span class="src">McKinsey · The State of AI · Nov 2025</span></div></div>
+  </div>
+  <p class="lead" style="margin-top:2.8vh">This is <b style="color:var(--primary-strong)">why MCP validates</b> — <code>verify_dql</code> and <code>explain_dql</code> plus a human in the loop. You saw it in the demo: the query is checked before it's trusted. Trustworthy beats fast.</p>
+</section>
+
+<!-- 17 Two kinds of orgs -->
+<section class="slide">
+  <div class="kicker">Act 3 · the strategic close</div>
+  <h2>Two kinds of organizations from here</h2>
+  <div class="cols">
+    <div class="card okb"><div class="kicker ok">AI-first</div><ul style="font-size:1.2vw"><li>Agents act across the platform</li><li>Workflows redesigned around AI</li><li>Experts freed for hard problems</li><li>Minutes to a documented answer</li></ul></div>
+    <div class="card critb"><div class="kicker crit">Traditional</div><ul style="font-size:1.2vw"><li>Manual, tiered troubleshooting</li><li>Dashboard archaeology at 3 a.m.</li><li>Experts stuck fetching data</li><li>Hours and handoffs per incident</li></ul></div>
+  </div>
+  <p class="lead" style="margin-top:2.6vh">The gap between them is <b style="color:var(--primary-strong)">widening</b> — and it compounds with every incident.</p>
+</section>
+
+<!-- 18 Taxonomy -->
+<section class="slide">
+  <div class="kicker">Act 3 · coverage</div>
+  <h2>Every use-case category one demo lit up</h2>
+  <div class="taxo">
+    <span class="lit">AIOps &amp; automation</span>
+    <span class="lit">Full-stack observability</span>
+    <span class="lit">Observability for developers</span>
+    <span class="lit">Distributed tracing</span>
+    <span class="lit">Log management &amp; analytics</span>
+    <span class="lit">Runtime vulnerability analytics</span>
+    <span class="lit">Security posture management</span>
+    <span class="lit">DevSecOps automation</span>
+    <span class="lit">BizDevOps</span>
+    <span class="lit">Tool consolidation</span>
+    <span class="lit">Platform engineering</span>
+    <span class="lit">Site reliability engineering</span>
+  </div>
+  <p class="lead" style="margin-top:3vh">One incident, one conversation — and it touched your whole platform strategy.</p>
+</section>
+
+<!-- 19 Honesty -->
+<section class="slide">
+  <div class="kicker">Act 3 · straight talk</div>
+  <h2>One honest note about the tooling</h2>
+  <ul>
+    <li>The open-source <b>local MCP server</b> shown today is in <b>maintenance mode</b></li>
+    <li>Dynatrace's recommended path forward is the <b>Remote MCP server + dtctl</b></li>
+    <li>The local <code>npx</code> server still works today — that's what you watched live</li>
+    <li>Telling a technical room the truth is part of earning the next conversation</li>
+  </ul>
+</section>
+
+<!-- 20 Getting started -->
+<section class="slide">
+  <div class="kicker">Act 3 · take it home</div>
+  <h2>Getting started safely</h2>
+  <ul>
+    <li>Use the <b>Remote MCP server + dtctl</b> for team-scale, governed access</li>
+    <li>Scope <b>OAuth tokens</b> to least privilege — read for triage, write only where needed</li>
+    <li>Set a <b>Grail query budget</b> (<code>DT_GRAIL_QUERY_BUDGET_GB</code>) — queries scan by GB</li>
+    <li>Start in one namespace with a rule file; expand once the team trusts it</li>
+  </ul>
+</section>
+
+<!-- 21 CTA -->
+<section class="slide">
+  <div class="kicker">Thank you</div>
+  <h1>Your turn to <span class="accent">ask Dynatrace</span></h1>
+  <p class="lead">Concepts, proof, and the numbers — one conversation runs the whole incident. Questions?</p>
+</section>
+
+<!-- topbar: logo left, counter right -->
+<div class="topbar">
+  <div class="logo">
+    <img src="dynatrace-logo-1.svg" alt="Dynatrace" height="30" style="display:block" />
+  </div>
+  <span class="topbar-counter"><span id="cur">1</span>&thinsp;/&thinsp;<span id="tot">25</span></span>
+</div>
+
+<!-- footerbar: series label left, nav hint right -->
+<div class="footerbar">
+  <span class="footer-series"><b>Enablement Series: Dynatrace MCP For SaaS</b> &nbsp;(A Part of Dynatrace User Group Initiative)&nbsp; |&nbsp; India SDO (Customer Success)</span>
+  <span class="footer-hint">&#8592; &#8594; navigate &middot; F fullscreen</span>
+</div>
+
+<div class="bar" id="bar" style="width:0"></div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  const tot = slides.length;
+  document.getElementById('tot').textContent = String(tot);
+  function show(n) {
+    i = Math.max(0, Math.min(tot - 1, n));
+    slides.forEach((s, idx) => s.classList.toggle('active', idx === i));
+    document.getElementById('cur').textContent = String(i + 1);
+    document.getElementById('bar').style.width = ((i + 1) / tot * 100) + '%';
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { show(i + 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { show(i - 1); e.preventDefault(); }
+    else if (e.key === 'Home') { show(0); }
+    else if (e.key === 'End') { show(tot - 1); }
+    else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
+      else { document.exitFullscreen(); }
+    }
+  });
+  document.addEventListener('click', (e) => {
+    if (e.clientX > window.innerWidth * 0.5) { show(i + 1); } else { show(i - 1); }
+  });
+  show(0);
+</script>
+</body>
+</html>
