@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" type="image/png" href="../../assets/favicon.png" />
+<title>Dynatrace MCP for Managed — talking to your cluster in plain English</title>
+<script type="text/javascript" src="https://js-cdn.dynatrace.com/jstag/18b1df4492a/bf12470wrz/311790b34cb0940c_complete.js" crossorigin="anonymous"></script>
+<!-- DynatraceFlow loaded from central repo assets folder -->
+<style>
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Hairline.otf') format('opentype'); font-weight: 100; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Thin.otf') format('opentype'); font-weight: 200; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Extralight.otf') format('opentype'); font-weight: 300; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Light.otf') format('opentype'); font-weight: 350; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Regular.otf') format('opentype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Medium.otf') format('opentype'); font-weight: 500; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Semibold.otf') format('opentype'); font-weight: 600; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Bold.otf') format('opentype'); font-weight: 700; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Extrabold.otf') format('opentype'); font-weight: 800; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Heavy.otf') format('opentype'); font-weight: 900; font-style: normal; }
+
+  /* Strato design tokens (dark theme) */
+  :root {
+    --bg: #19192c;
+    --surface: #212135;
+    --surface-2: #2a2a40;
+    --border: #3b3b52;
+    --primary: #999bed;
+    --primary-strong: #b8bbff;
+    --success: #6fc3ba;
+    --warning: #eea83f;
+    --critical: #ff999c;
+    --text: #ebecff;
+    --text-sub: #b1b2d2;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--text); overflow: hidden;
+    font-family: 'DynatraceFlow', Helvetica, Arial, sans-serif;
+  }
+
+  .slide {
+    position: absolute; inset: 0; display: none;
+    flex-direction: column; justify-content: center;
+    padding: 8vh 9vw 6vh; animation: fade .35s ease;
+  }
+  .slide.active { display: flex; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .kicker { color: var(--primary); font-size: .95vw; letter-spacing: .18em; text-transform: uppercase; font-weight: 600; margin-bottom: 1.2vh; display: flex; align-items: center; gap: .6vw; }
+  .kicker::before { content: ''; display: inline-block; width: 2px; height: 1em; background: var(--primary); border-radius: 2px; flex-shrink: 0; }
+  .kicker.ok { color: var(--success); }
+  .kicker.ok::before { background: var(--success); }
+  .kicker.crit { color: var(--critical); }
+  .kicker.crit::before { background: var(--critical); }
+  h1 { font-size: 3.8vw; line-height: 1.1; margin: 0 0 2vh; font-weight: 700; letter-spacing: -.02em; }
+  h1 .accent { color: var(--primary-strong); background: linear-gradient(90deg,var(--primary),var(--primary-strong)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  h2 { font-size: 2.4vw; line-height: 1.15; margin: 0 0 2.4vh; font-weight: 700; letter-spacing: -.015em; color: var(--text); }
+  h2::after { content: ''; display: block; width: 3.2vw; height: 3px; background: linear-gradient(90deg,var(--primary),transparent); border-radius: 2px; margin-top: .7vh; }
+  p.lead { font-size: 1.4vw; color: var(--text-sub); margin: 0 0 1.6vh; max-width: 72ch; line-height: 1.65; }
+  ul { font-size: 1.35vw; line-height: 1.75; margin: 0; padding-left: 1.2em; max-width: 78ch; }
+  ul li { margin-bottom: .7vh; }
+  ul li b { color: var(--primary-strong); font-weight: 600; }
+  .crit { color: var(--critical); }
+  .warn { color: var(--warning); }
+  .ok   { color: var(--success); }
+  code { background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: .92em; color: var(--primary-strong); font-family: 'Courier New', Courier, monospace; }
+
+  .cols { display: flex; gap: 3vw; }
+  .cols > div { flex: 1; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 2.4vh 1.8vw; }
+  .card.acc   { border-color: var(--primary); }
+  .card.critb { border-color: var(--critical); }
+  .card.okb   { border-color: var(--success); }
+
+  .step { background: var(--surface); border: 1px solid var(--border); border-left: 5px solid var(--primary); border-radius: 10px; padding: 1.8vh 1.2vw; }
+  .step.root { border-left-color: var(--critical); }
+  .step.biz  { border-left-color: var(--warning); }
+  .step .l { font-size: .9vw; text-transform: uppercase; letter-spacing: .06em; color: var(--text-sub); }
+  .step h4 { margin: .6vh 0 .4vh; font-size: 1.25vw; }
+  .step .m { font-size: 1vw; color: var(--text-sub); }
+
+  .arch { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 1.2vw; align-items: center; }
+  .node { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 2.4vh 1.4vw; text-align: center; }
+  .node.agent { border-color: var(--primary); }
+  .node.dt    { border-color: var(--success); }
+  .node h4 { margin: 0 0 .8vh; font-size: 1.4vw; }
+  .node p  { margin: 0; font-size: 1vw; color: var(--text-sub); }
+  .conn { font-size: 2.4vw; color: var(--primary); text-align: center; }
+  .conn small { display: block; font-size: .8vw; color: var(--text-sub); letter-spacing: .04em; }
+
+  .qbox { background: var(--surface); border: 1px solid var(--border); border-left: 5px solid var(--primary); border-radius: 12px; padding: 2.2vh 1.6vw; font-size: 1.5vw; font-style: italic; color: var(--text); }
+  .chips { margin-top: 1.8vh; display: flex; flex-wrap: wrap; gap: .7vw; }
+  .chip { font-size: 1vw; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: .5vh 1vw; }
+  .chip.highlight { border-color: var(--success); color: var(--success); }
+
+  .taxo { display: flex; flex-wrap: wrap; gap: .9vw; max-width: 80ch; }
+  .taxo span { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: .7vh 1.2vw; font-size: 1.1vw; }
+  .taxo span.lit { border-color: var(--primary); color: var(--primary-strong); }
+
+  .dtable { width: 100%; border-collapse: collapse; font-size: 1.2vw; }
+  .dtable th { color: var(--text-sub); font-weight: 600; text-align: left; padding: .9vh 1vw; border-bottom: 1px solid var(--border); font-size: 1vw; text-transform: uppercase; letter-spacing: .06em; }
+  .dtable td { padding: .9vh 1vw; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.4; }
+  .dtable tr:last-child td { border-bottom: none; }
+  .dtable td:first-child { color: var(--primary-strong); font-weight: 600; white-space: nowrap; }
+
+  .callout { background: var(--surface); border: 1px solid var(--primary); border-radius: 12px; padding: 1.6vh 1.4vw; font-size: 1.2vw; color: var(--text); margin-top: 2.4vh; max-width: 80ch; }
+
+  .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.6vw; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 2.6vh 1.4vw; }
+  .stat.acc { border-color: var(--primary); }
+  .stat.critb { border-color: var(--critical); }
+  .stat .num { font-size: 3.4vw; font-weight: 800; line-height: 1; color: var(--primary-strong); }
+  .stat .num.ok   { color: var(--success); }
+  .stat .num.warn { color: var(--warning); }
+  .stat .num.crit { color: var(--critical); }
+  .stat .cap { font-size: 1.1vw; color: var(--text); margin-top: 1.2vh; line-height: 1.4; }
+  .src { display: block; margin-top: .9vh; font-size: .82vw; color: var(--text-sub); letter-spacing: .02em; }
+
+  .marker { align-items: center; justify-content: center; text-align: center; }
+  .marker .go { font-size: 6vw; color: var(--primary); line-height: 1; margin-bottom: 2vh; }
+
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 52px; z-index: 20;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2.2vw;
+  }
+  .logo { display: flex; align-items: center; text-decoration: none; }
+  .topbar-counter { font-size: 12px; color: var(--text-sub); letter-spacing: .04em; }
+  .footerbar {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 38px; z-index: 20;
+    background: var(--bg); border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2.2vw;
+  }
+  .footer-series { font-size: 11px; color: var(--text-sub); letter-spacing: .03em; }
+  .footer-series b { color: var(--primary); font-weight: 600; }
+  .footer-hint { font-size: 11px; color: var(--border); letter-spacing: .02em; }
+  .bar { position: fixed; bottom: 38px; left: 0; height: 2px; background: linear-gradient(90deg,var(--primary),var(--primary-strong)); transition: width .3s; z-index: 21; }
+</style>
+</head>
+<body>
+
+<!-- SLIDES START -->
+
+<!-- 1 Title -->
+<section class="slide active">
+  <div class="kicker">Dynatrace MCP for Managed · live technical session</div>
+  <h1>Your Managed cluster,<br /><span class="accent">in plain English</span></h1>
+  <p class="lead">The official open source Model Context Protocol server for Dynatrace Managed — connecting AI assistants like GitHub Copilot and Claude directly to your self-hosted environments: problems, security findings, entities, SLOs, logs, and metrics, all through one conversation.</p>
+</section>
+<!-- NOTES: Welcome. Quick poll: who here runs Dynatrace Managed? Who has tried AI assistants against their observability data? Today we close the gap between those two groups. This is the official dynatrace-oss project, community-supported via GitHub Issues. Concepts first, then what you can actually ask, then how to get it running on your own cluster before you leave. -->
+
+<!-- 2 Act 1 opener — the problem -->
+<section class="slide">
+  <div class="kicker">Act 1 · the problem</div>
+  <h2>Managed teams have been watching from the sidelines</h2>
+  <ul>
+    <li>Most AI-for-observability tooling ships <b>SaaS-first</b> — built for Grail, OAuth, and the latest platform APIs</li>
+    <li>Managed environments run the same critical workloads, but the assistant ecosystem <b>skipped them</b></li>
+    <li>Meanwhile troubleshooting still means <b>dashboard archaeology</b>: open the console, filter, click, correlate, repeat</li>
+    <li>The data is all there in your cluster — the missing piece is a <b>safe bridge</b> from your AI assistant to it</li>
+  </ul>
+</section>
+<!-- NOTES: Frame the tension honestly. Managed customers often feel like second-class citizens in the AI tooling wave. This session is about a bridge that was built specifically for them — by the community, for real Managed clusters, at no extra cost. -->
+
+<!-- 3 Concept 1: What is MCP -->
+<section class="slide">
+  <div class="kicker">Act 1 · concept 1 of 4</div>
+  <h2>What is the Model Context Protocol?</h2>
+  <p class="lead">An open standard that lets an AI assistant call real systems through a defined, permissioned set of tools — instead of guessing from training data.</p>
+  <div class="arch">
+    <div class="node agent"><h4>AI assistant</h4><p>VS Code Copilot, Claude Desktop, or any MCP-capable client</p></div>
+    <div class="conn">&#8594;<small>tool call</small></div>
+    <div class="node"><h4>MCP server</h4><p>Exposes a defined set of tools &amp; permissions — the contract</p></div>
+    <div class="conn">&#8594;<small>real request</small></div>
+    <div class="node dt"><h4>Real system</h4><p>Files, databases, APIs — here: your Dynatrace Managed cluster</p></div>
+  </div>
+  <div class="callout">The assistant never touches your cluster directly. It can only do what the MCP server's tools allow — nothing more.</div>
+</section>
+<!-- NOTES: The USB-C analogy works well here: MCP is a universal connector between any AI client and any system. Emphasize the middle box — the server defines the contract. If a tool isn't exposed, the AI physically cannot do it. That's the governance story in one picture. -->
+
+<!-- 4 Concept 2: Introducing the server -->
+<section class="slide">
+  <div class="kicker">Act 1 · concept 2 of 4</div>
+  <h2>Introducing the Dynatrace Managed MCP Server</h2>
+  <div class="cols">
+    <div>
+      <ul>
+        <li><b>Built for Managed</b> — targets the v2 REST APIs on your self-hosted cluster, not Grail or DQL</li>
+        <li><b>Official open source</b> — <code>dynatrace-oss</code> project, MIT licensed, community-supported via GitHub Issues</li>
+        <li><b>No extra licensing cost</b> — queries incur nothing beyond your standard Managed license</li>
+        <li><b>Simple install</b> — <code>npx -y @dynatrace-oss/dynatrace-managed-mcp-server@latest</code></li>
+      </ul>
+    </div>
+    <div class="card acc">
+      <div class="kicker">What it needs</div>
+      <ul style="font-size:1.15vw">
+        <li>Dynatrace Managed <b>1.328.0</b> or newer</li>
+        <li>API endpoint URL + environment ID + alias per environment</li>
+        <li>An API token with read scopes</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<!-- NOTES: Key reassurances for a Managed audience: nothing to buy, nothing installed on the cluster itself, no cluster-side changes. It's a client-side bridge that speaks the v2 REST APIs your cluster already exposes. Note the sibling project split: this is dynatrace-oss/dynatrace-managed-mcp for self-hosted; SaaS tenants use dynatrace-oss/dynatrace-mcp (DQL, OAuth, Davis CoPilot). Community-supported means GitHub Issues, not Dynatrace ONE tickets — be upfront about that. -->
+
+<!-- 5 Concept 3: Two connection modes -->
+<section class="slide">
+  <div class="kicker">Act 1 · concept 3 of 4</div>
+  <h2>Two connection modes — pick per team, not per company</h2>
+  <div class="cols">
+    <div class="card acc">
+      <div class="kicker">Local mode</div>
+      <ul style="font-size:1.2vw">
+        <li>Runs <b>on your machine</b>, launched by your IDE or assistant via <code>npx</code></li>
+        <li>Credentials live in your local config only</li>
+        <li>Great for <b>individual development &amp; testing</b></li>
+        <li>Zero infrastructure — working in minutes</li>
+      </ul>
+    </div>
+    <div class="card okb">
+      <div class="kicker ok">Remote mode (HTTP/SSE)</div>
+      <ul style="font-size:1.2vw">
+        <li><b>Centrally hosted</b> once, shared by the whole team</li>
+        <li>Per-user tokens passed <b>per request</b></li>
+        <li><b>No shared credentials</b> stored on the server</li>
+        <li>The governed path for <b>team-scale</b> rollout</li>
+      </ul>
+    </div>
+  </div>
+  <p class="lead" style="margin-top:2.4vh">Start local to prove value in a day. Move to remote when more than a handful of people want in.</p>
+</section>
+<!-- NOTES: This is the adoption path slide. Local mode = frictionless pilot. Remote mode = what security teams will actually approve at scale, because the server holds no credentials and every request carries the caller's own token. Preview that the next slide shows exactly how that token flow works. -->
+
+<!-- 6 Concept 4: How it fits -->
+<section class="slide">
+  <div class="kicker">Act 1 · concept 4 of 4</div>
+  <h2>How it fits into your environment</h2>
+  <div class="arch">
+    <div class="node agent"><h4>Your assistants</h4><p>VS Code + Copilot<br />Claude Desktop</p></div>
+    <div class="conn">&#8594;<small>X-Dynatrace-Tokens header</small></div>
+    <div class="node"><h4>Managed MCP server</h4><p>Carries per-user, per-environment tokens on each request — <b class="ok">no tokens stored server-side</b></p></div>
+    <div class="conn">&#8594;<small>v2 REST APIs</small></div>
+    <div class="node dt"><h4>Managed environments</h4><p>Production<br />Staging<br />&hellip;as many as you configure</p></div>
+  </div>
+  <div class="callout">Tokens travel as an alias map — <code>X-Dynatrace-Tokens: prod=dt0c01.AAA;staging=dt0c01.BBB</code> — so every request is authenticated as <b>the person asking</b>, and a request naming an environment without a token is rejected.</div>
+</section>
+<!-- NOTES: Walk the arrows left to right. The X-Dynatrace-Tokens header is the security heart of remote mode: the server holds NO Dynatrace tokens — its HTTP-mode config contains only aliases and URLs, which are non-secret. If someone's token is revoked, their access dies instantly — no server redeploy. Because tokens ride in a header, run the HTTP server behind TLS (it binds 127.0.0.1 by default and does not terminate TLS itself). -->
+
+<!-- 7 Marker: demo handoff -->
+<section class="slide marker">
+  <div class="go">&#9654;</div>
+  <h1>Let's ask it <span class="accent">something real</span></h1>
+  <p class="lead">Switching to a live VS Code session connected to a Dynatrace Managed environment.</p>
+</section>
+<!-- NOTES: Transition to the live demo. Have VS Code pre-opened with .vscode/mcp.json configured and the MCP server already warmed up. If the demo environment is down, the next five slides carry the same story as a narrated walkthrough. -->
+
+<!-- 8 Act 2: What you can ask -->
+<section class="slide">
+  <div class="kicker">Act 2 · the capabilities</div>
+  <h2>What you can ask it to do</h2>
+  <div class="cols" style="gap:1.4vw">
+    <div class="step"><div class="l">Problems &amp; events</div><h4>&ldquo;What problems fired in the last hour on checkout-service?&rdquo;</h4><div class="m">Filtered problem feed with root cause detail</div></div>
+    <div class="step root"><div class="l">Security findings</div><h4>Vulnerability detail per entity</h4><div class="m">Fast triage and compliance evidence</div></div>
+    <div class="step"><div class="l">Entity lookups</div><h4>Full detail on any monitored entity</h4><div class="m">Services, hosts, Kubernetes workloads</div></div>
+  </div>
+  <div class="cols" style="gap:1.4vw;margin-top:1.6vh">
+    <div class="step biz"><div class="l">Multi-environment queries</div><h4>Several Managed environments, one conversation</h4><div class="m">Compare production and staging without switching consoles</div></div>
+    <div class="step"><div class="l">Trend analysis</div><h4>&ldquo;How has response time trended for this service this week?&rdquo;</h4><div class="m">Metric queries with selectors, straight from the API</div></div>
+  </div>
+</section>
+<!-- NOTES: These five categories map one-to-one to the demo beats coming up. Read the checkout-service question out loud — the entire pitch is that the question IS the query language. No DQL, no API docs, no console navigation. -->
+
+<!-- 9 Act 2: The capability surface -->
+<section class="slide">
+  <div class="kicker">Act 2 · under the hood</div>
+  <h2>Seven capability areas on the v2 APIs</h2>
+  <table class="dtable">
+    <tr><th>Capability</th><th>What the assistant can do</th></tr>
+    <tr><td>Problems</td><td>List and get problem details — including root cause — from your services</td></tr>
+    <tr><td>Security</td><td>List and get security problem / vulnerability details</td></tr>
+    <tr><td>Entities</td><td>Full detail on any monitored entity, including relationship mappings</td></tr>
+    <tr><td>SLOs</td><td>List and get Service Level Objectives — evaluation and error budgets</td></tr>
+    <tr><td>Events</td><td>List and get system events</td></tr>
+    <tr><td>Logs</td><td>Search and filter logs with content and time-based queries</td></tr>
+    <tr><td>Metrics</td><td>Query and analyze performance metrics via the v2 Metrics API</td></tr>
+  </table>
+  <p class="lead" style="margin-top:2vh">All read paths on APIs your cluster already exposes — <b style="color:var(--primary-strong)">no additional cost</b> beyond your standard Managed license.</p>
+</section>
+<!-- NOTES: Don't read the table row by row — point out the breadth: problems with root cause, security, entities with relationships, SLOs with error budgets, logs, events, metrics. Everything rides the v2 REST APIs — that's the key difference from the SaaS MCP, which speaks DQL against Grail. Built-in rate limiting defaults to 20 tool calls per 20 seconds (configurable) to protect your cluster. -->
+
+<!-- 10 Act 2: Demo beat 1 — triage -->
+<section class="slide">
+  <div class="kicker">Act 2 · demo · beat 1</div>
+  <h2>Triage: from page to root cause</h2>
+  <div class="qbox">&ldquo;What problems fired in the last hour on checkout-service, and what was the root cause?&rdquo;</div>
+  <div class="chips">
+    <span class="chip">Problems capability</span>
+    <span class="chip">entity selector filter</span>
+    <span class="chip highlight">root cause included</span>
+  </div>
+  <p class="lead" style="margin-top:2.4vh">The assistant filters by entity and time range, pulls the full problem record — including Davis root cause — and summarizes it in the language of the person asking.</p>
+</section>
+<!-- NOTES: Run this live. Show the tool calls appearing in the chat. Highlight that the problem detail returns the same root-cause data the console shows — the assistant is not inventing a diagnosis, it is reading Dynatrace's. Follow the repo's performance best practices live: narrow time range (now-1h), specific entity selector. -->
+
+<!-- 11 Act 2: Demo beat 2 — security -->
+<section class="slide">
+  <div class="kicker">Act 2 · demo · beat 2</div>
+  <h2>Security: triage and compliance evidence</h2>
+  <div class="qbox">&ldquo;Which vulnerabilities affect the hosts behind checkout-service? Give me detail I can paste into the audit ticket.&rdquo;</div>
+  <div class="chips">
+    <span class="chip">Security capability</span>
+    <span class="chip">entity relationships</span>
+    <span class="chip highlight">compliance-ready output</span>
+  </div>
+  <p class="lead" style="margin-top:2.4vh">Vulnerability and security-problem detail per entity — turned into fast triage for engineers and ready-made evidence for auditors.</p>
+</section>
+<!-- NOTES: The compliance-evidence angle lands hard with Managed audiences — many run Managed precisely because of regulatory constraints. The assistant formats the same finding two ways for two audiences from one query. -->
+
+<!-- 12 Act 2: Demo beat 3 — multi-environment -->
+<section class="slide">
+  <div class="kicker">Act 2 · demo · beat 3</div>
+  <h2>Multi-environment: prod and staging in one breath</h2>
+  <div class="qbox">&ldquo;Is this problem also happening in staging? Compare the error rate across both environments.&rdquo;</div>
+  <div class="chips">
+    <span class="chip">metrics &#215; alias: prod</span>
+    <span class="chip">metrics &#215; alias: staging</span>
+    <span class="chip highlight">one conversation, N environments</span>
+  </div>
+  <p class="lead" style="margin-top:2.4vh">Each configured environment gets a friendly <b style="color:var(--primary-strong)">alias</b> — the assistant targets environments by name, and the comparison that normally means two console tabs happens in one answer.</p>
+</section>
+<!-- NOTES: This is the capability unique to running your own environments list. "Did staging catch it first?" and "is prod-only?" are the two most common escalation questions — both are now one sentence. Aliases matter: the repo strongly recommends a rule file naming each environment so the LLM never guesses which one you mean. In remote mode each environment's token still belongs to the asking user. -->
+
+<!-- 13 Act 2: Demo beat 4 — trends -->
+<section class="slide">
+  <div class="kicker">Act 2 · demo · beat 4</div>
+  <h2>Trends: the question behind the question</h2>
+  <div class="qbox">&ldquo;Trend the response time of checkout-service over the last 7 days — did the release on Tuesday make it worse?&rdquo;</div>
+  <div class="chips">
+    <span class="chip">Metrics capability</span>
+    <span class="chip">Events capability</span>
+    <span class="chip highlight">correlation, narrated</span>
+  </div>
+  <p class="lead" style="margin-top:2.4vh">Metric trend plus deployment events, correlated and explained — the analysis a senior engineer would do, available to everyone on the team.</p>
+</section>
+<!-- NOTES: End the demo run here on a forward-looking note: trend analysis is where assistants stop being lookup tools and start being analysts. The correlation with deployment events is what turns "the graph went up" into "the Tuesday release did it". -->
+
+<!-- 14 Act 2: Hybrid with SaaS -->
+<section class="slide">
+  <div class="kicker">Act 2 · the hybrid story</div>
+  <h2>Runs side by side with the SaaS MCP</h2>
+  <div class="cols">
+    <div class="card acc">
+      <div class="kicker">Migration scenario</div>
+      <p class="lead" style="font-size:1.2vw">Moved to SaaS but historical data still lives on Managed? Configure <b>both MCP servers</b> in one client — the assistant queries Managed for history and SaaS for live data.</p>
+    </div>
+    <div class="card okb">
+      <div class="kicker ok">Tandem scenario</div>
+      <p class="lead" style="font-size:1.2vw">Some apps on Managed, others on SaaS? One conversation spans both — with <b>rule files</b> steering the assistant to the right server per system.</p>
+    </div>
+  </div>
+  <div class="callout">Key differences: the SaaS MCP speaks <b>DQL + OAuth + Davis CoPilot</b>; the Managed MCP speaks <b>v2 APIs + API tokens</b>. Name the two servers differently and add steering rules so the assistant never guesses.</div>
+</section>
+<!-- NOTES: This slide lands with every account mid-migration. The README ships ready-made steering rule templates for three setups: multiple Managed environments, migration-with-cutoff-date, and tandem operation. Without rules, "list problems from the last 24 hours" may hit one server or both, unpredictably — with rules, the assistant routes by date range or by system. -->
+
+<!-- 15 Act 3: recap -->
+<section class="slide">
+  <div class="kicker">Act 3 · what you just saw</div>
+  <h2>One conversation did all of this</h2>
+  <div class="taxo">
+    <span class="lit">Problem triage with root cause</span>
+    <span class="lit">Security finding detail</span>
+    <span class="lit">Entity lookups &amp; relationships</span>
+    <span class="lit">Cross-environment comparison</span>
+    <span class="lit">Metric trend analysis</span>
+    <span class="lit">Deployment correlation</span>
+    <span class="lit">SLO &amp; error budget checks</span>
+    <span class="lit">Log investigation</span>
+    <span class="lit">Audit-ready evidence</span>
+  </div>
+  <p class="lead" style="margin-top:3vh">No console tabs. No API documentation. No DQL. Just questions — answered from <b style="color:var(--primary-strong)">your own Managed cluster's data</b>.</p>
+</section>
+<!-- NOTES: Recap fast — the audience saw it, this slide just names it. The closing line matters: answers are grounded in their cluster, not in an LLM's training data. That sets up the trust stats coming next. -->
+
+<!-- 16 Act 3: adoption stats -->
+<section class="slide">
+  <div class="kicker">Act 3 · the industry context</div>
+  <h2>The AI shift is not waiting for anyone</h2>
+  <div class="stats">
+    <div class="stat acc"><div class="num">88%</div><div class="cap">of organizations now use AI in at least one business function — up from 78% a year earlier<span class="src">McKinsey · The State of AI · Nov 2025</span></div></div>
+    <div class="stat"><div class="num ok">75%+</div><div class="cap">of technical practitioners rely on AI for at least one <b>daily</b> responsibility<span class="src">Google Cloud · DORA report · 2024</span></div></div>
+    <div class="stat"><div class="num warn">~2 / 3</div><div class="cap">have <b>not</b> yet scaled AI across the enterprise — most are still piloting<span class="src">McKinsey · The State of AI · Nov 2025</span></div></div>
+  </div>
+  <p class="lead" style="margin-top:2.6vh">Your engineers are already using AI assistants daily. The only question is whether those assistants can see your observability data — or have to guess.</p>
+</section>
+<!-- NOTES: Land the closing argument: adoption is near-universal but scaling is rare — the winners are the ones who wire AI into real workflows. For a Managed shop, this MCP server is exactly that wiring, available today, at no license cost. -->
+
+<!-- 17 Act 3: trust stats -->
+<section class="slide">
+  <div class="kicker">Act 3 · the caveat that sells governance</div>
+  <h2>Fast-but-wrong AI is worse than no AI</h2>
+  <div class="stats" style="grid-template-columns:repeat(2,1fr);max-width:70ch">
+    <div class="stat critb"><div class="num crit">~39%</div><div class="cap">report <b>little-to-no trust</b> in AI-generated output<span class="src">Google Cloud · DORA report · 2024</span></div></div>
+    <div class="stat"><div class="num warn">#1</div><div class="cap"><b>Inaccuracy</b> is the most-cited risk among AI-using organizations<span class="src">McKinsey · The State of AI · Nov 2025</span></div></div>
+  </div>
+  <p class="lead" style="margin-top:2.8vh">MCP's answer: the assistant <b style="color:var(--primary-strong)">reads live data through permissioned tools</b> — every answer traceable to an API call you can audit, made as the user who asked.</p>
+</section>
+<!-- NOTES: Acknowledge the trust gap honestly — then flip it: grounding answers in live API responses with per-user tokens and OTel traces is the antidote to hallucination anxiety. This is why the architecture slides in Act 1 were worth the time. -->
+
+<!-- 18 Act 3: getting started -->
+<section class="slide">
+  <div class="kicker">Act 3 · take it home</div>
+  <h2>Getting started — before your coffee cools</h2>
+  <div class="cols" style="gap:1.6vw">
+    <div class="step"><div class="l">Step 1</div><h4>Create a read-scoped API token</h4><div class="m"><code>DataExport</code>, <code>problems.read</code>, <code>securityProblems.read</code>, <code>entities.read</code>, <code>slo.read</code>, <code>logs.read</code>, <code>metrics.read</code>, <code>events.read</code>, <code>auditLogs.read</code>, <code>networkZones.read</code></div></div>
+    <div class="step"><div class="l">Step 2</div><h4>Write a config file, add the server</h4><div class="m"><code>dt-config.yaml</code> — API endpoint URL, environment ID, alias, <code>apiToken: ${DT_PROD_TOKEN}</code> — then <code>npx -y @dynatrace-oss/dynatrace-managed-mcp-server@latest</code> in <code>.vscode/mcp.json</code></div></div>
+    <div class="step"><div class="l">Step 3</div><h4>Ask your first question</h4><div class="m">&ldquo;What problems has Dynatrace identified? Give details of the first problem.&rdquo;</div></div>
+  </div>
+  <div class="callout">Use <code>${VAR_NAME}</code> interpolation in the config file — commit it to version control with zero secrets inside. Works in VS Code, Claude Desktop, Cursor, Kiro, Windsurf, and Gemini CLI.</div>
+</section>
+<!-- NOTES: Emphasize the config-file method — it's the recommended path: readable YAML, comments, env-var interpolation so tokens never land in git. Kubernetes/Docker users can use DT_ENVIRONMENT_CONFIGS as a JSON string instead. Config changes need an MCP server restart to be picked up. Requires Dynatrace Managed 1.328.0+. -->
+
+<!-- 19 Act 3: rollout guardrails -->
+<section class="slide">
+  <div class="kicker">Act 3 · scaling it safely</div>
+  <h2>Guardrails for the team rollout</h2>
+  <ul>
+    <li>Move to <b>remote mode (HTTP/SSE)</b> once more than a few users are in — per-user tokens per request, nothing stored server-side</li>
+    <li>Run the HTTP server <b>behind TLS</b> — it binds <code>127.0.0.1</code> and does not terminate TLS itself</li>
+    <li>Built-in <b>rate limiting</b> protects your cluster — default 20 tool calls per 20 seconds, tunable via <code>DT_MCP_RATE_LIMIT_*</code></li>
+    <li>Keep queries <b>narrow</b> — specific time ranges (now-1h) and entity selectors, per the repo's performance guidance</li>
+    <li>Add a <b>rule file</b> naming each environment alias — the assistant should never guess which cluster you mean</li>
+    <li>It is <b>community-supported</b> — file issues and ideas on GitHub, and contribute back what you build</li>
+  </ul>
+</section>
+<!-- NOTES: The honest-broker slide. Community-supported cuts both ways: no SLA, but direct access to maintainers via GitHub Issues. Mention telemetry transparency: the server sends anonymous usage telemetry via OpenKit by default — disable with DT_MCP_DISABLE_TELEMETRY=true if policy requires. Header size note for big estates: ~140-150 environments fit in Node's default 16 KB header limit; raise --max-http-header-size beyond that. -->
+
+<!-- 20 CTA -->
+<section class="slide">
+  <div class="kicker">Thank you</div>
+  <h1>Your cluster is <span class="accent">ready to talk</span></h1>
+  <p class="lead">github.com/dynatrace-oss/dynatrace-managed-mcp &nbsp;·&nbsp; npm: <code>@dynatrace-oss/dynatrace-managed-mcp-server</code></p>
+  <p class="lead">One npm package, one API token, one question — and Dynatrace Managed answers in plain English. Questions?</p>
+</section>
+<!-- NOTES: Close with the two links on screen while taking questions. Common Q&A: minimum version (Dynatrace Managed 1.328.0), licensing (MIT, queries cost nothing beyond the standard Managed license), support (community via GitHub Issues), and SaaS tenants (different server — dynatrace-oss/dynatrace-mcp, which uses DQL/OAuth/Davis CoPilot). -->
+
+<!-- SLIDES END -->
+
+<div class="topbar">
+  <div class="logo">
+    <img src="../../assets/dynatrace-logo-1.svg" alt="Dynatrace" height="30" style="display:block" />
+  </div>
+  <span class="topbar-counter"><span id="cur">1</span>&thinsp;/&thinsp;<span id="tot">0</span></span>
+</div>
+
+<div class="footerbar">
+  <span class="footer-series"><b>Enablement Series: Dynatrace MCP For Managed</b> &nbsp;(A Part of Dynatrace User Group Initiative)&nbsp; |&nbsp; India SDO (Customer Success)</span>
+  <span class="footer-hint">&#8592; &#8594; navigate &middot; F fullscreen</span>
+</div>
+
+<div class="bar" id="bar" style="width:0"></div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let i = 0;
+  const tot = slides.length;
+  document.getElementById('tot').textContent = String(tot);
+  function show(n) {
+    i = Math.max(0, Math.min(tot - 1, n));
+    slides.forEach((s, idx) => s.classList.toggle('active', idx === i));
+    document.getElementById('cur').textContent = String(i + 1);
+    document.getElementById('bar').style.width = ((i + 1) / tot * 100) + '%';
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { show(i + 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { show(i - 1); e.preventDefault(); }
+    else if (e.key === 'Home') { show(0); }
+    else if (e.key === 'End') { show(tot - 1); }
+    else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
+      else { document.exitFullscreen(); }
+    }
+  });
+  document.addEventListener('click', (e) => {
+    if (e.clientX > window.innerWidth * 0.5) { show(i + 1); } else { show(i - 1); }
+  });
+  show(0);
+</script>
+</body>
+</html>
