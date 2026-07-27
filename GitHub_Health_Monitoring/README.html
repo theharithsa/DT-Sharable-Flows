@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" type="image/png" href="../assets/favicon.png" />
+<title>Integrating GitHub Data with Dynatrace — DT-Sharable-Flows</title>
+<script type="text/javascript" src="https://js-cdn.dynatrace.com/jstag/18b1df4492a/bf12470wrz/311790b34cb0940c_complete.js" crossorigin="anonymous"></script>
+<style>
+  @font-face { font-family: 'DynatraceFlow'; src: url('../assets/fonts/DTFlow-Hairline.otf') format('opentype'); font-weight: 100; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../assets/fonts/DTFlow-Thin.otf') format('opentype'); font-weight: 200; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../assets/fonts/DTFlow-Extralight.otf') format('opentype'); font-weight: 300; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../assets/fonts/DTFlow-Light.otf') format('opentype'); font-weight: 350; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../assets/fonts/DTFlow-Regular.otf') format('opentype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../assets/fonts/DTFlow-Medium.otf') format('opentype'); font-weight: 500; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../assets/fonts/DTFlow-Semibold.otf') format('opentype'); font-weight: 600; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../assets/fonts/DTFlow-Bold.otf') format('opentype'); font-weight: 700; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../assets/fonts/DTFlow-Extrabold.otf') format('opentype'); font-weight: 800; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../assets/fonts/DTFlow-Heavy.otf') format('opentype'); font-weight: 900; font-style: normal; }
+
+  :root {
+    --bg: #f5f7fb; --surface: #ffffff; --surface-2: #f0f3f9;
+    --border: #e2e7f0; --text: #1a2333; --text-soft: #56617a; --text-faint: #8a94ab;
+    --blue: #1496ff; --blue-deep: #0e75c9; --purple: #6f2da8;
+    --shadow: 0 1px 2px rgba(20,35,60,.05), 0 8px 24px -12px rgba(20,35,60,.15);
+    --radius: 14px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DynatraceFlow', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    line-height: 1.65; -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--blue-deep); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,.88); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-inner {
+    max-width: 1240px; margin: 0 auto; padding: 12px 24px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .logo-chip { background: #1a2333; border-radius: 9px; padding: 6px 11px; display: flex; align-items: center; }
+  .logo-chip img { height: 20px; display: block; }
+  .crumbs { font-size: 13.5px; color: var(--text-faint); display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .crumbs a { font-weight: 600; color: var(--text-soft); white-space: nowrap; }
+  .crumbs a:hover { color: var(--blue-deep); text-decoration: none; }
+  .crumbs .doc-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .topbar .dl {
+    margin-left: auto; display: inline-flex; align-items: center; gap: 7px;
+    font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 999px;
+    background: var(--blue); color: #fff; white-space: nowrap;
+  }
+  .topbar .dl:hover { background: var(--blue-deep); text-decoration: none; }
+  .topbar .dl svg { width: 14px; height: 14px; }
+
+  .wrap {
+    max-width: 1240px; margin: 0 auto; padding: 36px 24px 90px;
+    display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 40px;
+  }
+  .doc-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: clamp(24px, 5vw, 56px);
+  }
+  aside.toc { position: sticky; top: 86px; align-self: start; font-size: 13px; max-height: calc(100vh - 110px); overflow-y: auto; }
+  aside.toc .toc-title {
+    font-size: 11px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--text-faint); margin-bottom: 10px;
+  }
+  aside.toc a {
+    display: block; color: var(--text-soft); padding: 4px 0 4px 12px;
+    border-left: 2px solid var(--border); line-height: 1.45;
+  }
+  aside.toc a.lvl-3 { padding-left: 26px; }
+  aside.toc a:hover { color: var(--blue-deep); text-decoration: none; }
+  aside.toc a.active { color: var(--blue-deep); border-left-color: var(--blue); font-weight: 600; }
+
+  #content { min-width: 0; }
+  #content > :first-child { margin-top: 0; }
+  #content h1 {
+    font-size: clamp(26px, 4vw, 36px); font-weight: 800; letter-spacing: -.02em;
+    line-height: 1.15; margin: 0 0 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border);
+  }
+  #content h2 { font-size: 24px; font-weight: 700; letter-spacing: -.01em; margin: 44px 0 14px; padding-top: 8px; }
+  #content h3 { font-size: 18.5px; font-weight: 650; margin: 30px 0 10px; }
+  #content h4 { font-size: 16px; font-weight: 600; margin: 24px 0 8px; }
+  #content h2, #content h3, #content h4 { scroll-margin-top: 86px; }
+  #content p { margin: 0 0 14px; font-weight: 350; font-size: 15.5px; }
+  #content ul, #content ol { margin: 0 0 16px 26px; font-weight: 350; font-size: 15.5px; }
+  #content li { margin-bottom: 6px; }
+  #content li > ul, #content li > ol { margin-top: 6px; margin-bottom: 6px; }
+  #content strong { font-weight: 650; }
+  #content hr { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
+  #content img { max-width: 100%; border-radius: 10px; border: 1px solid var(--border); margin: 8px 0 16px; }
+  #content blockquote {
+    margin: 0 0 16px; padding: 12px 18px;
+    background: rgba(20,150,255,.06); border-left: 3px solid var(--blue);
+    border-radius: 0 10px 10px 0; color: var(--text-soft);
+  }
+  #content blockquote p { margin: 0; }
+  #content blockquote p + p { margin-top: 8px; }
+  #content code {
+    font-family: Consolas, 'Cascadia Code', monospace; font-size: .875em;
+    background: var(--surface-2); border: 1px solid var(--border);
+    padding: 1.5px 6px; border-radius: 6px; color: var(--purple);
+  }
+  #content pre {
+    background: #0f1523; color: #dfe6f3; border-radius: 12px;
+    padding: 18px 20px; overflow-x: auto; margin: 0 0 18px;
+    font-size: 13.5px; line-height: 1.55;
+  }
+  #content pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+
+  #content table {
+    width: 100%; border-collapse: collapse; margin: 0 0 20px;
+    font-size: 14px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  }
+  #content th {
+    text-align: left; font-weight: 650; font-size: 12.5px;
+    letter-spacing: .04em; text-transform: uppercase; color: var(--text-soft);
+    background: var(--surface-2); padding: 10px 14px; border-bottom: 1px solid var(--border);
+  }
+  #content td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; font-weight: 350; }
+  #content tr:last-child td { border-bottom: none; }
+
+  .mermaid-block {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px; margin: 0 0 18px; text-align: center; overflow-x: auto;
+  }
+
+  .doc-meta {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    font-size: 12.5px; color: var(--text-faint); margin-bottom: 26px;
+  }
+  .doc-meta .pill {
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 999px; padding: 3px 12px; font-weight: 500;
+    font-family: Consolas, monospace; font-size: 11.5px;
+  }
+
+  @media (max-width: 900px) {
+    .wrap { grid-template-columns: 1fr; }
+    aside.toc { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo-chip" href="../index.html" title="Back to hub"><img src="../assets/dynatrace-logo-1.svg" alt="Dynatrace" /></a>
+    <div class="crumbs">
+      <a href="../index.html">DT-Sharable-Flows</a>
+      <span>/</span>
+      <span class="doc-name">README.md</span>
+    </div>
+    <a class="dl" href="README.md" download>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
+      Download .md
+    </a>
+  </div>
+</header>
+
+<div class="wrap">
+  <article class="doc-card">
+    <div class="doc-meta"><span class="pill">GitHub_Health_Monitoring/README.md</span><span>Markdown · rendered</span></div>
+    <div id="content"></div>
+  </article>
+  <aside class="toc" id="toc"></aside>
+</div>
+
+<script type="text/markdown" id="md-source">
+# Integrating GitHub Data with Dynatrace
+*How to Connect GitHub API Metrics to Dynatrace for Full Engineering Observability*
+
+---
+
+## 🚀 Why Integrate GitHub with Dynatrace?
+
+For business leaders and tech managers, knowing what’s happening in engineering is critical—delivery speed, code quality, and process health are all tied to business outcomes.
+
+**By streaming GitHub metrics/events into Dynatrace, you:**
+
+* Get real-time, always-on visibility into engineering workflows
+* Can spot issues, delays, and risks early—before they impact customers
+* Track both technical and human factors (like review bottlenecks, deployment velocity, or contributor activity)
+* Have one place for infrastructure, application, AND DevOps metrics—driving real DevSecOps culture
+
+*[Source: “Key Metrics for Dev Teams from GitHub API Endpoints”](../assets/github.pdf)*.
+
+---
+
+## 🛠️ What Data Can Be Pushed from GitHub?
+
+With the GitHub API, you can extract:
+
+* Commits (when, by whom, frequency)
+* Pull Requests (open/closed, time to review, merged, blocked)
+* Issues (bugs/features, open/closed, mean time to resolution)
+* Workflow Runs (CI/CD pipeline success/failure, deployment stats)
+* Security Alerts (code scanning, dependabot, vulnerabilities)
+* Contributor Metrics (active users, new contributors, “bus factor” risk)
+* Repository-level and Org-wide trends
+
+All these data points become **metrics** and **logs** you can visualize, alert on, and trend in Dynatrace.
+
+---
+
+## 🏗️ Architecture Overview
+
+```mermaid
+graph TD;
+    A[GitHub API] <--> B[Dynatrace Automation Engine]
+    B --> C1[Dynatrace Logs Ingest API]
+    B --> C2[Dynatrace Metrics Ingest API]
+    C1 & C2 --> D[Dynatrace Platform: Dashboards, Alerts, AI]
+```
+
+* **Integration Service:** Polls GitHub API, processes data
+* **Logs Ingest API:** For event streams (like PR/Issue open/close, workflow runs, security events)
+* **Metrics Ingest API:** For numerical KPIs (review time, PR throughput, deployment rate, etc.)
+* **Dynatrace:** All your metrics & logs—one view, rich analytics, AI, and alerts
+
+---
+
+## 👨‍💻 Developer Step-by-Step Guide
+
+### 1. Register a GitHub App / Create a Personal Access Token
+
+* [Create a GitHub PAT](https://github.com/settings/tokens) (needs `repo`, `read:org`, `read:security_events`, `read:user` scopes as needed)
+* Or, use a GitHub App for tighter control
+
+### 2. Choose Key Metrics to Track
+
+Reference from the doc:
+
+* PRs merged per week/month
+* Average PR review/merge time
+* Issue open/close counts
+* Workflow run success/failures
+* Security alert counts
+* Contributor activity
+
+### 3. Query GitHub API
+
+**Example: Get All PRs for a Repo**
+
+```http
+GET /repos/{owner}/{repo}/pulls?state=all
+Authorization: Bearer <TOKEN>
+```
+
+[GitHub API Docs](https://docs.github.com/en/rest)
+
+**Example: Get Workflow Runs**
+
+```http
+GET /repos/{owner}/{repo}/actions/runs
+```
+
+### 4. Structure the Data
+
+* For logs: Make a JSON payload per event, include relevant dimensions (repo, user, status, timestamps)
+* For metrics: Compute numbers like `avg_review_time_seconds`, `open_pr_count`, `closed_issue_count`, `deployment_success_rate`, etc.
+
+**Sample Metric Payload for Dynatrace Metrics API**
+
+```json
+[
+  {
+    "metric": "github.pr.review_time",
+    "dataPoints": [[ 1627852800000, 3600 ]],
+    "dimensions": { "repo": "my-repo", "org": "my-org" }
+  }
+]
+```
+
+* **metric:** Metric name (namespace it sensibly)
+* **dataPoints:** `[ [timestamp, value] ]` format, epoch in ms
+* **dimensions:** Any labels for easy filtering (org, repo, team, user)
+
+**Sample Log Payload for Dynatrace Logs API**
+
+```json
+{
+  "timestamp": "2024-08-04T12:34:56Z",
+  "content": {
+    "eventType": "pull_request_merged",
+    "repo": "my-repo",
+    "pr_number": 42,
+    "merged_by": "alice",
+    "merge_time_seconds": 1234
+  }
+}
+```
+
+### 5. Send Data to Dynatrace
+
+* **Logs API**:
+  [Dynatrace Docs](https://www.dynatrace.com/support/help/dynatrace-api/environment-api/logs/ingest-logs)
+
+  * POST JSON to `https://<ENVIRONMENT_ID>.live.dynatrace.com/api/v2/logs/ingest`
+  * Use your Dynatrace API token (`Ingest logs` permission)
+
+* **Metrics API**:
+  [Dynatrace Docs](https://www.dynatrace.com/support/help/dynatrace-api/environment-api/metrics/post-ingest-metrics)
+
+  * POST JSON to `https://<ENVIRONMENT_ID>.live.dynatrace.com/api/v2/metrics/ingest`
+  * Use API token (`Ingest metrics` permission)
+
+**Sample cURL for Metrics:**
+
+```bash
+curl -X POST "https://<ENV>.live.dynatrace.com/api/v2/metrics/ingest" \
+  -H "Authorization: Api-Token <DT_API_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '[{ "metric":"github.pr.review_time", "dataPoints":[[1627852800000,3600]], "dimensions": {"repo":"my-repo"} }]'
+```
+
+**Sample cURL for Logs:**
+
+```bash
+curl -X POST "https://<ENV>.live.dynatrace.com/api/v2/logs/ingest" \
+  -H "Authorization: Api-Token <DT_API_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"timestamp":"2024-08-04T12:34:56Z","content":{"eventType":"pull_request_merged","repo":"my-repo"}}'
+```
+
+### 6. Automate: Schedule Periodic Data Sync
+
+* Use a simple Node.js/Python script, GitHub Actions, or a cloud function to poll GitHub and push to Dynatrace every X minutes/hours OR see below.
+
+## 🤖 Automating GitHub → Dynatrace Ingestion with Dynatrace Automation Workflows
+
+### Why Use Dynatrace Workflows?
+
+Instead of running your own scripts on servers, you can let Dynatrace handle scheduling, execution, error handling, and even downstream actions—all within its Automation Workflows platform.
+This makes your GitHub-to-Dynatrace integration cloud-native, reliable, and low-maintenance.
+
+**What’s the benefit?**
+
+* Zero infrastructure: No VMs, no containers, no external schedulers
+* Secure: API tokens and secrets are managed in Dynatrace
+* Flexible: Use built-in or custom actions (HTTP calls, scripts, notifications, etc.)
+* Observable: All runs, failures, and outputs are logged and can trigger further actions
+
+---
+
+### Example: Pull GitHub Metrics and Ingest to Dynatrace Using a Workflow
+
+**Here’s how a typical workflow looks:**
+
+1. **Trigger:**
+
+   * Scheduled (every 1 hour, for example)
+   * Or on demand
+
+2. **Steps:**
+
+   * Use Dynatrace’s HTTP action to call GitHub API (with your token/secret)
+   * Transform/process the data (optional—use JavaScript code block)
+   * Send the results to Dynatrace Metrics API and/or Logs API (another HTTP action)
+   * Optionally, notify teams if something goes wrong or thresholds are crossed
+
+---
+
+### Example Automation Scenarios
+
+* **Scheduled polling:** Run every hour/day to fetch latest GitHub org stats, push to Dynatrace.
+* **Error-triggered actions:** If a metric or log ingested crosses a threshold, run a workflow to auto-notify the engineering lead on Slack, Teams, or email.
+* **Chained remediation:** Spot a spike in open security alerts? Trigger a follow-up workflow to open a JIRA ticket or ServiceNow incident automatically.
+* **Self-healing CI/CD:** Detect repeated build failures in logs—auto-notify, roll back, or trigger deeper diagnostics.
+
+---
+
+### How to Set Up
+
+1. Go to **AutomationEngine > Workflows** in Dynatrace.
+2. Create a new workflow and pick a trigger (scheduled or on-demand).
+3. Add HTTP actions for GitHub API and Dynatrace API calls.
+4. Add any code logic needed (JavaScript is natively supported).
+5. Use secure credential storage for your tokens.
+6. Add notifications, branching logic, or downstream integrations as needed.
+7. Save, test, and monitor—all from the Dynatrace UI.
+
+---
+
+## 💡 Pro-Tip
+
+Workflows are reusable! You can parameterize repo/org names, so the same automation works for multiple teams or projects.
+
+---
+
+**All this further amplifies the value of GitHub data in Dynatrace:**
+You’re not just visualizing data—you’re *acting on it*, automatically, as soon as something important happens.
+
+---
+
+*[This section builds on the recommended architecture and metrics in “Key Metrics for Dev Teams from GitHub API Endpoints” and leverages the latest Dynatrace AutomationEngine features.](../assets/github.pdf)*
+
+---
+
+## 📊 Setting Up Dashboards & Alerts in Dynatrace
+
+* **Dashboards:**
+  Use your ingested metrics and logs to build engineering health dashboards:
+
+  * PR review/merge time over time
+  * Deployment frequency trend
+  * Open issues/PRs by repo/team
+  * Security alerts by status
+  * Contributor activity
+
+* **Alerts:**
+  Set up anomaly or static threshold alerts for:
+
+  * Sudden drop in deployment frequency
+  * Spike in open issues/PRs
+  * High security alert counts
+
+* **AI Assistance:**
+  Leverage Dynatrace Davis AI to auto-detect outliers, bottlenecks, or drops in engineering performance.
+
+---
+
+## 🔗 Example Use Cases
+
+* Spot when PR reviews are piling up, and notify the right team
+* Alert when a deployment fails in CI/CD more than X times in a day
+* Visualize contributor activity—find bus factor risk early
+* Track security alert closure time for compliance
+
+---
+
+## 📑 References
+
+* **Key Metrics for Dev Teams from GitHub API Endpoints**
+  (../assets/github.pdf)
+
+* [Dynatrace API: Logs Ingest](https://www.dynatrace.com/support/help/dynatrace-api/environment-api/logs/ingest-logs)
+
+* [Dynatrace API: Metrics Ingest](https://www.dynatrace.com/support/help/dynatrace-api/environment-api/metrics/post-ingest-metrics)
+
+* [GitHub REST API Docs](https://docs.github.com/en/rest)
+
+* [GitHub GraphQL API Docs](https://docs.github.com/en/graphql)
+
+---
+
+## 🙌 Conclusion
+
+This integration gives your org a single, actionable view of engineering health, right next to your app and infra monitoring—no more guesswork, just insight.
+You can start with just a few key metrics and grow over time.
+If you want ready-to-use code snippets or dashboard templates, just ask!
+
+---
+
+*Based on “Key Metrics for Dev Teams from GitHub API Endpoints”, your go-to source for GitHub org health tracking*.
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var content = document.getElementById('content');
+  var tocEl = document.getElementById('toc');
+  var md = document.getElementById('md-source').textContent.replace(/^\n/, '');
+
+  // GitHub-style heading slugs (keeps intra-doc TOC links working)
+  var slugCounts = {};
+  function slugify(text) {
+    var s = text.toLowerCase().trim()
+      .replace(/<[^>]+>/g, '')
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-');
+    if (slugCounts[s] != null) { slugCounts[s]++; s = s + '-' + slugCounts[s]; }
+    else { slugCounts[s] = 0; }
+    return s;
+  }
+
+  var renderer = new marked.Renderer();
+  renderer.heading = function (text, level) {
+    return '<h' + level + ' id="' + slugify(text) + '">' + text + '</h' + level + '>';
+  };
+  renderer.link = function (href, title, text) {
+    var url = href || '';
+    // Sibling .md links open their generated .html page
+    if (/\.md($|#)/i.test(url) && !/^[a-z]+:/i.test(url)) {
+      url = url.replace(/\.md($|#)/i, '.html$1');
+    }
+    var ext = /^https?:/i.test(url) ? ' target="_blank" rel="noopener noreferrer"' : '';
+    return '<a href="' + url + '"' + (title ? ' title="' + title + '"' : '') + ext + '>' + text + '</a>';
+  };
+  marked.setOptions({ renderer: renderer, gfm: true, breaks: false, mangle: false, headerIds: false });
+
+  // Extract mermaid blocks before parsing
+  md = md.replace(/```mermaid\r?\n([\s\S]*?)```/g, function (_, code) {
+    return '\n<div class="mermaid-block"><pre class="mermaid">' + code
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre></div>\n';
+  });
+
+  content.innerHTML = marked.parse(md);
+
+  // TOC from h2/h3 with scroll-spy
+  var heads = content.querySelectorAll('h2, h3');
+  if (heads.length > 2) {
+    var html = '<div class="toc-title">On this page</div>';
+    heads.forEach(function (h) {
+      html += '<a class="lvl-' + h.tagName[1] + '" href="#' + h.id + '">' + h.textContent + '</a>';
+    });
+    tocEl.innerHTML = html;
+    var links = tocEl.querySelectorAll('a');
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          links.forEach(function (l) { l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id); });
+        }
+      });
+    }, { rootMargin: '-80px 0px -70% 0px' });
+    heads.forEach(function (h) { obs.observe(h); });
+  }
+
+  // Mermaid
+  if (window.mermaid && content.querySelector('pre.mermaid')) {
+    mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'strict', fontFamily: 'DynatraceFlow, Segoe UI, sans-serif' });
+    mermaid.run({ nodes: content.querySelectorAll('pre.mermaid') });
+  }
+
+  // Deep-link anchor
+  if (location.hash) {
+    var t = document.getElementById(location.hash.slice(1));
+    if (t) t.scrollIntoView();
+  }
+})();
+</script>
+
+</body>
+</html>

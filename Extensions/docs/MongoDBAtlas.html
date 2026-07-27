@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" type="image/png" href="../../assets/favicon.png" />
+<title>MongoDB Atlas Monitoring with Dynatrace — DT-Sharable-Flows</title>
+<script type="text/javascript" src="https://js-cdn.dynatrace.com/jstag/18b1df4492a/bf12470wrz/311790b34cb0940c_complete.js" crossorigin="anonymous"></script>
+<style>
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Hairline.otf') format('opentype'); font-weight: 100; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Thin.otf') format('opentype'); font-weight: 200; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Extralight.otf') format('opentype'); font-weight: 300; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Light.otf') format('opentype'); font-weight: 350; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Regular.otf') format('opentype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Medium.otf') format('opentype'); font-weight: 500; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Semibold.otf') format('opentype'); font-weight: 600; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Bold.otf') format('opentype'); font-weight: 700; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Extrabold.otf') format('opentype'); font-weight: 800; font-style: normal; }
+  @font-face { font-family: 'DynatraceFlow'; src: url('../../assets/fonts/DTFlow-Heavy.otf') format('opentype'); font-weight: 900; font-style: normal; }
+
+  :root {
+    --bg: #f5f7fb; --surface: #ffffff; --surface-2: #f0f3f9;
+    --border: #e2e7f0; --text: #1a2333; --text-soft: #56617a; --text-faint: #8a94ab;
+    --blue: #1496ff; --blue-deep: #0e75c9; --purple: #6f2da8;
+    --shadow: 0 1px 2px rgba(20,35,60,.05), 0 8px 24px -12px rgba(20,35,60,.15);
+    --radius: 14px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DynatraceFlow', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    line-height: 1.65; -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--blue-deep); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,.88); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-inner {
+    max-width: 1240px; margin: 0 auto; padding: 12px 24px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .logo-chip { background: #1a2333; border-radius: 9px; padding: 6px 11px; display: flex; align-items: center; }
+  .logo-chip img { height: 20px; display: block; }
+  .crumbs { font-size: 13.5px; color: var(--text-faint); display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .crumbs a { font-weight: 600; color: var(--text-soft); white-space: nowrap; }
+  .crumbs a:hover { color: var(--blue-deep); text-decoration: none; }
+  .crumbs .doc-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .topbar .dl {
+    margin-left: auto; display: inline-flex; align-items: center; gap: 7px;
+    font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 999px;
+    background: var(--blue); color: #fff; white-space: nowrap;
+  }
+  .topbar .dl:hover { background: var(--blue-deep); text-decoration: none; }
+  .topbar .dl svg { width: 14px; height: 14px; }
+
+  .wrap {
+    max-width: 1240px; margin: 0 auto; padding: 36px 24px 90px;
+    display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 40px;
+  }
+  .doc-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: clamp(24px, 5vw, 56px);
+  }
+  aside.toc { position: sticky; top: 86px; align-self: start; font-size: 13px; max-height: calc(100vh - 110px); overflow-y: auto; }
+  aside.toc .toc-title {
+    font-size: 11px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--text-faint); margin-bottom: 10px;
+  }
+  aside.toc a {
+    display: block; color: var(--text-soft); padding: 4px 0 4px 12px;
+    border-left: 2px solid var(--border); line-height: 1.45;
+  }
+  aside.toc a.lvl-3 { padding-left: 26px; }
+  aside.toc a:hover { color: var(--blue-deep); text-decoration: none; }
+  aside.toc a.active { color: var(--blue-deep); border-left-color: var(--blue); font-weight: 600; }
+
+  #content { min-width: 0; }
+  #content > :first-child { margin-top: 0; }
+  #content h1 {
+    font-size: clamp(26px, 4vw, 36px); font-weight: 800; letter-spacing: -.02em;
+    line-height: 1.15; margin: 0 0 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border);
+  }
+  #content h2 { font-size: 24px; font-weight: 700; letter-spacing: -.01em; margin: 44px 0 14px; padding-top: 8px; }
+  #content h3 { font-size: 18.5px; font-weight: 650; margin: 30px 0 10px; }
+  #content h4 { font-size: 16px; font-weight: 600; margin: 24px 0 8px; }
+  #content h2, #content h3, #content h4 { scroll-margin-top: 86px; }
+  #content p { margin: 0 0 14px; font-weight: 350; font-size: 15.5px; }
+  #content ul, #content ol { margin: 0 0 16px 26px; font-weight: 350; font-size: 15.5px; }
+  #content li { margin-bottom: 6px; }
+  #content li > ul, #content li > ol { margin-top: 6px; margin-bottom: 6px; }
+  #content strong { font-weight: 650; }
+  #content hr { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
+  #content img { max-width: 100%; border-radius: 10px; border: 1px solid var(--border); margin: 8px 0 16px; }
+  #content blockquote {
+    margin: 0 0 16px; padding: 12px 18px;
+    background: rgba(20,150,255,.06); border-left: 3px solid var(--blue);
+    border-radius: 0 10px 10px 0; color: var(--text-soft);
+  }
+  #content blockquote p { margin: 0; }
+  #content blockquote p + p { margin-top: 8px; }
+  #content code {
+    font-family: Consolas, 'Cascadia Code', monospace; font-size: .875em;
+    background: var(--surface-2); border: 1px solid var(--border);
+    padding: 1.5px 6px; border-radius: 6px; color: var(--purple);
+  }
+  #content pre {
+    background: #0f1523; color: #dfe6f3; border-radius: 12px;
+    padding: 18px 20px; overflow-x: auto; margin: 0 0 18px;
+    font-size: 13.5px; line-height: 1.55;
+  }
+  #content pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+
+  #content table {
+    width: 100%; border-collapse: collapse; margin: 0 0 20px;
+    font-size: 14px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  }
+  #content th {
+    text-align: left; font-weight: 650; font-size: 12.5px;
+    letter-spacing: .04em; text-transform: uppercase; color: var(--text-soft);
+    background: var(--surface-2); padding: 10px 14px; border-bottom: 1px solid var(--border);
+  }
+  #content td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; font-weight: 350; }
+  #content tr:last-child td { border-bottom: none; }
+
+  .mermaid-block {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px; margin: 0 0 18px; text-align: center; overflow-x: auto;
+  }
+
+  .doc-meta {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    font-size: 12.5px; color: var(--text-faint); margin-bottom: 26px;
+  }
+  .doc-meta .pill {
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 999px; padding: 3px 12px; font-weight: 500;
+    font-family: Consolas, monospace; font-size: 11.5px;
+  }
+
+  @media (max-width: 900px) {
+    .wrap { grid-template-columns: 1fr; }
+    aside.toc { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="logo-chip" href="../../index.html" title="Back to hub"><img src="../../assets/dynatrace-logo-1.svg" alt="Dynatrace" /></a>
+    <div class="crumbs">
+      <a href="../../index.html">DT-Sharable-Flows</a>
+      <span>/</span>
+      <span class="doc-name">MongoDBAtlas.md</span>
+    </div>
+    <a class="dl" href="MongoDBAtlas.md" download>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
+      Download .md
+    </a>
+  </div>
+</header>
+
+<div class="wrap">
+  <article class="doc-card">
+    <div class="doc-meta"><span class="pill">Extensions/docs/MongoDBAtlas.md</span><span>Markdown · rendered</span></div>
+    <div id="content"></div>
+  </article>
+  <aside class="toc" id="toc"></aside>
+</div>
+
+<script type="text/markdown" id="md-source">
+# MongoDB Atlas Monitoring with Dynatrace
+
+## Overview
+
+This document provides a comprehensive guide on integrating MongoDB Atlas with Dynatrace using the official Dynatrace MongoDB Atlas extension. This integration enables real-time monitoring, observability, and automated anomaly detection powered by Dynatrace's Davis AI.
+
+**For detailed extension content, visit:** [Dynatrace MongoDB Atlas Extension](https://www.dynatrace.com/hub/detail/mongodb-atlas/)
+
+---
+
+## Table of Contents
+
+1. [Introduction](#introduction)
+2. [Pre-requisites](#pre-requisites)
+3. [Architecture and Data Flow](#architecture-and-data-flow)
+4. [API Endpoints and Data Collection](#api-endpoints-and-data-collection)
+5. [API Key Creation & Security](#api-key-creation--security)
+6. [Configuring Dynatrace Extension](#configuring-dynatrace-extension)
+7. [Dynatrace Metrics & Events](#dynatrace-metrics--events)
+8. [Troubleshooting & Best Practices](#troubleshooting--best-practices)
+9. [Security and Compliance Considerations](#security-and-compliance-considerations)
+10. [FAQ](#faq)
+11. [Supporting Links](#supporting-links)
+
+---
+
+## Introduction
+
+The MongoDB Atlas Dynatrace extension enables seamless observability of MongoDB Atlas deployments within Dynatrace environments, providing visibility into performance metrics, operational insights, and anomaly detection capabilities. Dynatrace's AI-driven insights and dashboards enhance operational efficiency and proactive issue resolution.
+
+---
+
+## Pre-requisites
+
+Ensure the following before starting the integration:
+
+* Active Dynatrace environment (SaaS/Managed)
+* Access to MongoDB Atlas environment with necessary administrative permissions
+* MongoDB Atlas Admin API key (read-only preferred)
+* Dynatrace ActiveGate with outbound internet connectivity
+* MongoDB Atlas Project ID
+
+---
+
+## Architecture and Data Flow
+
+Diagram showing the integration architecture between Dynatrace and MongoDB Atlas. On the left, a purple box labeled Dynatrace contains an icon for Dashboards and the word Dashboards. In the center, a purple box labeled Dynatrace ActiveGate connects Dynatrace to MongoDB Atlas. Arrows indicate data flow: an API key connects Dashboards to Dynatrace ActiveGate, and Dynatrace ActiveGate communicates with MongoDB Atlas using the MongoDB Atlas Administration API. On the right, a white box labeled MongoDB Atlas lists Projects, Clusters, Nodes, Metrics, and Events, with each item marked by a green dot. The diagram visually explains how Dynatrace ActiveGate securely collects monitoring data from MongoDB Atlas and makes it available for analysis and visualization in Dynatrace dashboards. The tone is neutral and informative, focusing on technical clarity.
+
+![MogoDB Architecture](../../assets/mongodb-atlas-architecture.png)
+
+### Architectural Overview
+
+* **Dynatrace ActiveGate**: The central component facilitating secure API communication.
+* **MongoDB Atlas API**: Dynatrace fetches monitoring data via secure API calls.
+* **Data Flow**: ActiveGate securely pulls data from MongoDB Atlas API and pushes it into Dynatrace for analysis.
+
+### Step-by-Step Data Flow
+
+1. Dynatrace securely stores Atlas Admin API keys.
+2. ActiveGate initiates secure API calls (HTTPS GET) to MongoDB Atlas.
+3. Atlas responds with JSON-formatted metrics and event data.
+4. Dynatrace converts and ingests data, visualizing it on dashboards and processing it for Davis AI.
+
+---
+
+## API Endpoints and Data Collection
+
+Dynatrace extension fetches data from the following MongoDB Atlas Admin API endpoints:
+
+| Purpose                    | API Endpoint                                                       |
+| -------------------------- | ------------------------------------------------------------------ |
+| List Projects              | `GET /groups`                                                      |
+| Get Clusters               | `GET /groups/{projectId}/clusters`                                 |
+| Get Processes              | `GET /groups/{projectId}/processes`                                |
+| Process Metrics            | `GET /groups/{projectId}/processes/{hostname}:{port}/measurements` |
+| Disk Partitions (optional) | `GET /groups/{projectId}/processes/{hostname}:{port}/disks`        |
+| Project Events (optional)  | `GET /groups/{projectId}/events`                                   |
+
+These endpoints are read-only, ensuring no modification to MongoDB data or configuration.
+
+---
+
+## API Key Creation & Security
+
+### Recommended API Key Permissions
+
+* `ORG_READ_ONLY` for org-wide metrics [For more details about Org API](https://www.mongodb.com/docs/atlas/configure-api-access/#std-label-create-org-api-key).
+* `PROJECT_READ_ONLY` for single-project monitoring
+* `PROJECT_DATA_ACCESS_ADMIN` for detailed metrics collection (recommended)
+
+### Security Best Practices
+
+* Securely store API keys in Dynatrace configuration.
+* Regularly rotate API keys based on company policies.
+* Restrict IP whitelist in Atlas to ActiveGate IP addresses.
+
+---
+
+## Configuring Dynatrace Extension
+
+Follow these steps in Dynatrace:
+
+1. Navigate to Dynatrace Hub → MongoDB Atlas Extension.
+2. Install the extension on an ActiveGate.
+3. Configure the following:
+
+   * Project ID
+   * Atlas API Public and Private keys
+   * Polling interval (default: 1 min recommended)
+   * Optionally enable disk partition and event monitoring.
+4. Save configuration and verify the connection status.
+
+---
+
+## Dynatrace Metrics & Events
+
+### Collected Metrics
+
+* CPU, memory, network, connections, and storage usage
+* Disk performance metrics (if enabled)
+
+### Collected Events (if enabled)
+
+* Authentication events
+* Cluster changes (creation, deletion)
+* Backup and restore operations
+* Operational alerts from MongoDB Atlas
+
+All events appear as log events in Dynatrace, allowing custom log analytics.
+
+---
+
+## Troubleshooting & Best Practices
+
+### Common Issues
+
+* **API access errors**: Validate API key roles and IP whitelisting.
+* **Missing metrics/events**: Ensure correct API permissions.
+
+### Best Practices
+
+* Use dedicated monitoring-only API keys.
+* Regularly validate data ingestion and dashboards.
+* Monitor ActiveGate health and connectivity.
+
+---
+
+## Security and Compliance Considerations
+
+* Data transferred is read-only.
+* API keys stored securely in Dynatrace.
+* Ensure compliance with organizational security policies (GDPR, ISO 27001).
+
+---
+
+## FAQ
+
+Absolutely, here are expanded FAQs you can add (all answers are Dynatrace-context, forward-looking, and clear):
+
+---
+
+### **Additional FAQs for MongoDB Atlas Dynatrace Integration**
+
+---
+
+**Q: How does DDU licensing work for the MongoDB Atlas Dynatrace extension?**
+
+A: The metrics and events collected through this extension consume Dynatrace Davis Data Units (DDUs).
+For details, see: [DDUs for metrics](https://www.dynatrace.com/support/help/shortlink/metrics-ddu).
+
+* The extension monitors **all clusters** (deployments) within a MongoDB Atlas project.
+* Each cluster has a number of nodes (processes), which is where process metrics are collected.
+* If you enable disk metrics, those are collected from each node’s disk partition(s).
+
+**General formula for DDU metric count:**
+
+* **Process Metrics (Total = 108 per node):**
+  `num_process_metrics = Number of projects × Clusters per project × Nodes per cluster × 108`
+
+* **Disk Metrics (Total = 18 per partition):**
+  `num_disk_metrics = Number of projects × Clusters per project × Nodes per cluster × Partitions per node × 18`
+
+* **Total metrics:**
+  `Total_metrics = num_process_metrics + num_disk_metrics`
+
+The total DDU consumption depends on the number of clusters, nodes, partitions, and how many metrics you enable. Monitor your DDU usage in Dynatrace to optimize costs.
+
+---
+
+**Q: What is the business value of integrating MongoDB Atlas with Dynatrace?**
+
+A: This integration brings real-time visibility and proactive monitoring to your cloud MongoDB environment. It helps teams quickly detect performance issues, anomalies, and potential risks before they impact users or critical business processes. With Dynatrace’s dashboards, AI-powered root cause analysis, and alerting, you minimize downtime, improve customer experience, and get actionable insights for both technical and business decisions.
+
+---
+
+**Q: How does this integration help the database team?**
+
+A: The database team benefits by:
+
+* Getting a unified view of MongoDB Atlas health, performance, and events alongside other monitored apps and infrastructure
+* Receiving AI-driven problem detection and correlation (no more manual log digging)
+* Accelerating incident response and root cause analysis, thanks to precise anomaly alerts and dashboards
+* Reducing silos between DB, app, and ops teams, so everyone works from the same data and context
+
+---
+
+**Q: Will MongoDB logs be ingested into Dynatrace along with metrics?**
+
+A: As of now, the official MongoDB Atlas Dynatrace extension ingests **metrics** and **Atlas platform events** (like cluster changes, alerts, and snapshots) as Dynatrace log events. It **does not directly collect full database logs** (such as slow query logs or audit logs) from MongoDB Atlas itself, because MongoDB Atlas does not expose raw database logs over its Admin API.
+However, you can ingest Atlas “event” information—which covers high-level operational events—into Dynatrace log analytics.
+If you require raw database log ingestion, you would need to export logs from Atlas separately (using Atlas automation or external storage integrations), and then use Dynatrace’s log ingest APIs to bring those in.
+
+---
+
+**Q: Can I limit which MongoDB Atlas projects or metrics are monitored to save on licensing?**
+
+A: Yes, you can scope API keys to specific projects, and configure the Dynatrace extension to collect only the data you need. Adjust polling intervals and disable disk/event monitoring if not needed to control DDU consumption.
+
+---
+
+**Q: Is data collection secure and compliant?**
+
+A: All data transfers are read-only, encrypted in transit, and API keys are securely stored within Dynatrace. You can restrict API key scope, IP whitelist, and revoke keys at any time for security compliance.
+
+---
+
+**Q: Is setup reversible? What if we want to disconnect later?**
+
+A: Yes, you can disable or remove the Dynatrace extension at any time, revoke API keys in Atlas, and all data collection will immediately stop.
+
+---
+
+**Q: Who can access the MongoDB Atlas data inside Dynatrace?**
+
+A: Access to ingested metrics/events is governed by Dynatrace user permissions and management zones, so you can restrict visibility as needed.
+
+---
+
+## Supporting Links
+
+* [Dynatrace MongoDB Atlas Extension Documentation](https://www.dynatrace.com/hub/detail/mongodb-atlas/)
+* [MongoDB Atlas API Documentation](https://www.mongodb.com/docs/atlas/api/)
+* [Dynatrace ActiveGate Documentation](https://www.dynatrace.com/support/help/setup-and-configuration/dynatrace-activegate/)
+* [Dynatrace Security Overview](https://www.dynatrace.com/security/)
+
+---
+
+This document ensures secure and efficient integration of MongoDB Atlas with Dynatrace, leveraging industry best practices for monitoring and observability.
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var content = document.getElementById('content');
+  var tocEl = document.getElementById('toc');
+  var md = document.getElementById('md-source').textContent.replace(/^\n/, '');
+
+  // GitHub-style heading slugs (keeps intra-doc TOC links working)
+  var slugCounts = {};
+  function slugify(text) {
+    var s = text.toLowerCase().trim()
+      .replace(/<[^>]+>/g, '')
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-');
+    if (slugCounts[s] != null) { slugCounts[s]++; s = s + '-' + slugCounts[s]; }
+    else { slugCounts[s] = 0; }
+    return s;
+  }
+
+  var renderer = new marked.Renderer();
+  renderer.heading = function (text, level) {
+    return '<h' + level + ' id="' + slugify(text) + '">' + text + '</h' + level + '>';
+  };
+  renderer.link = function (href, title, text) {
+    var url = href || '';
+    // Sibling .md links open their generated .html page
+    if (/\.md($|#)/i.test(url) && !/^[a-z]+:/i.test(url)) {
+      url = url.replace(/\.md($|#)/i, '.html$1');
+    }
+    var ext = /^https?:/i.test(url) ? ' target="_blank" rel="noopener noreferrer"' : '';
+    return '<a href="' + url + '"' + (title ? ' title="' + title + '"' : '') + ext + '>' + text + '</a>';
+  };
+  marked.setOptions({ renderer: renderer, gfm: true, breaks: false, mangle: false, headerIds: false });
+
+  // Extract mermaid blocks before parsing
+  md = md.replace(/```mermaid\r?\n([\s\S]*?)```/g, function (_, code) {
+    return '\n<div class="mermaid-block"><pre class="mermaid">' + code
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre></div>\n';
+  });
+
+  content.innerHTML = marked.parse(md);
+
+  // TOC from h2/h3 with scroll-spy
+  var heads = content.querySelectorAll('h2, h3');
+  if (heads.length > 2) {
+    var html = '<div class="toc-title">On this page</div>';
+    heads.forEach(function (h) {
+      html += '<a class="lvl-' + h.tagName[1] + '" href="#' + h.id + '">' + h.textContent + '</a>';
+    });
+    tocEl.innerHTML = html;
+    var links = tocEl.querySelectorAll('a');
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          links.forEach(function (l) { l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id); });
+        }
+      });
+    }, { rootMargin: '-80px 0px -70% 0px' });
+    heads.forEach(function (h) { obs.observe(h); });
+  }
+
+  // Mermaid
+  if (window.mermaid && content.querySelector('pre.mermaid')) {
+    mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'strict', fontFamily: 'DynatraceFlow, Segoe UI, sans-serif' });
+    mermaid.run({ nodes: content.querySelectorAll('pre.mermaid') });
+  }
+
+  // Deep-link anchor
+  if (location.hash) {
+    var t = document.getElementById(location.hash.slice(1));
+    if (t) t.scrollIntoView();
+  }
+})();
+</script>
+
+</body>
+</html>
