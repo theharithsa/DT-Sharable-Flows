@@ -1,10 +1,25 @@
 # Dynatrace Assist — Facilitator Cheat-Sheet
 
 **Session:** Enablement Series · Dynatrace Assist (DUG) · India SDO (Customer Success)
-**Tenant used for validation:** `dre63214` · **Format:** Interactive
+**Tenants used for validation:** `dre63214` + `guu84124` (demo.apps.dynatrace.com) · **Format:** Interactive
 **How to run:** Seed each prompt yourself → invite an attendee to send their own variation → read the answer AND its source links together.
 
 > All prompts below were validated live against Davis CoPilot. Answers summarized so you know what to expect on screen.
+
+---
+
+## ⚡ The two prompt modes — know this before you demo
+
+Davis CoPilot chat is a **knowledge assistant grounded in docs + community**, not a live-data engine. Open-ended "impress me" prompts (*"what's the most expensive thing running right now?"*) return **how-to guidance with doc citations — no live numbers**. On stage that's an anticlimax if you expected a chart.
+
+Live numbers come from the **natural-language → DQL → execute** path. Split every demo prompt into one of two buckets and *tell the audience which one you're firing*:
+
+| Bucket | What it's for | What comes back | Stage use |
+|---|---|---|---|
+| **A · "Teach me"** (chat) | how-do-I, explain-this, what-should-I-look-at | Guidance + source links | The trust / anti-hallucination beat |
+| **B · "Show me my data"** (NL→DQL) | top N, sorted by, timeframed | A live table/chart from the tenant | The wow moment |
+
+**Validated example of the difference:** chat prompt *"which workloads are over-provisioned?"* → solid conceptual walkthrough + docs (Bucket A, no numbers). NL→DQL prompt *"top 5 hosts by CPU usage in the last 2 hours"* → five real hosts on screen (Bucket B).
 
 ---
 
@@ -129,6 +144,51 @@ What data controls and access controls do administrators have?
 
 ---
 
+## Creative add-on prompts — validated against the demo tenant
+
+Use these beyond the default use-case prompts above. Bucket labels tell you what to expect on screen.
+
+### Bucket B — live-data prompts (these return real numbers)
+
+```
+Top 5 hosts by CPU usage in the last 2 hours
+```
+✅ tested — generated valid DQL, executed, returned 5 real hosts.
+
+```
+Active problems in the last 24 hours, sorted by count
+```
+✅ tested — **use this exact phrasing.** The compound version *"active problems … grouped by problem name"* failed the NL→DQL generator. Live result on `guu84124`: API gateway errors (137), AWS Lambda error rate (80), Network monitor (57)…
+
+```
+Top 10 services by failure rate in the last 4 hours
+```
+```
+Which log sources produced the most errors today?
+```
+```
+Slowest 10 user actions in the last hour by median duration
+```
+
+### Bucket A — teaching prompts (great narration + sources, no live numbers)
+
+```
+How do I find over-provisioned Kubernetes workloads and estimate savings?
+```
+✅ tested — strong conceptual answer with docs.
+
+```
+What is the best way to identify my most resource-expensive processes?
+```
+✅ tested.
+
+```
+Explain what this problem means and how to fix it
+```
+(paste a real problem from the environment)
+
+---
+
 ## Backup / overflow prompts (if the room wants more)
 
 ```
@@ -149,10 +209,23 @@ What does the metric dt.host.cpu.usage represent and how is it measured?
 
 ---
 
+## Prompting best practices (validated + sourced from Davis itself)
+
+1. **Name the entity.** "checkout-service" beats "my app."
+2. **Always give a timeframe.** "last 2 hours", "last 24h" — NL→DQL only worked cleanly when scoped.
+3. **Use Dynatrace nouns.** "problems", "PurePath", "hosts by CPU", "failure rate" map directly to Grail — vague verbs don't.
+4. **Ask for a shape, not a vibe.** "Top 5 … sorted by …" generates clean DQL. "Is my system healthy?" does not.
+5. **One question per prompt.** The compound "active problems … grouped by name" *failed* the generator; the simpler rewording succeeded.
+6. **Iterate out loud.** If a prompt fails on stage, reword and retry live — it reinforces that it's conversational, not magic.
+7. **End on the "so what."** After any data answer, follow with *"…and what should I do about it?"* — recommendation > finding.
+
+---
+
 ## Facilitator reminders
 
 - **Always open the source links** on screen — "trust, then verify" is the session's core message.
-- **If Assist misreads intent**, treat it as a phrasing lesson, not a failure.
+- **Announce the bucket before each prompt** — "this one teaches" vs "this one shows your data" — so nobody expects live numbers from a chat question.
+- **If Assist misreads intent**, treat it as a phrasing lesson, not a failure — reword and retry out loud.
 - **DQL generation help** may prompt "ask your admin to enable Agentic AI" — that's expected; explain the generative vs agentic distinction.
 - **Goal for the hour:** everyone leaves having asked at least one question that saves them a future ticket.
 

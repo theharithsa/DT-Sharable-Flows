@@ -564,20 +564,21 @@
 <!-- 17 · Prompting best practices ────────────────── -->
 <section class="slide">
   <div class="kicker">Act 2 · coach your users</div>
-  <h2>Prompting best practices</h2>
-  <p class="lead">The quality of the answer follows the quality of the prompt. These are the habits to teach even your most non-technical users.</p>
-  <ul>
-    <li><b>Be specific</b> — name the entity, the metric, and the timeframe.</li>
-    <li><b>Give context and your goal</b> — "I'm troubleshooting X and want to achieve Y."</li>
-    <li><b>One question at a time</b> — split multi-part asks into separate prompts.</li>
-    <li><b>Ask for a format</b> — "as a DQL query", "as a table", or "in plain English".</li>
-    <li><b>Use Dynatrace terms</b> — DQL, Smartscape, Davis, problem, SLO — they sharpen intent.</li>
-    <li><b>Never paste secrets or PII</b> — describe the shape of data, not the sensitive values.</li>
-    <li><b>Keep every prompt under 10,000 characters</b> — split long context into follow-ups.</li>
-    <li><b>Iterate and verify</b> — refine with follow-ups, and always open the source links.</li>
+  <h2>Prompting best practices — validated live</h2>
+  <p class="lead">The quality of the answer follows the quality of the prompt. Every habit below was tested against a live tenant while building this session.</p>
+  <ul style="font-size:1.25vw">
+    <li><b>Name the entity</b> — "checkout-service" beats "my app."</li>
+    <li><b>Always give a timeframe</b> — "last 2 hours", "last 24h", "since the deploy" — unscoped prompts get unscoped answers.</li>
+    <li><b>Use Dynatrace nouns</b> — problems, hosts by CPU, failure rate, PurePath, SLO — they map straight to your data; vague verbs don't.</li>
+    <li><b>Ask for a shape, not a vibe</b> — "top 5 &hellip; sorted by &hellip;" returns a clean result; "is my system healthy?" doesn't.</li>
+    <li><b>One question per prompt</b> — compound asks are where query generation fails; split and chain follow-ups.</li>
+    <li><b>Iterate out loud</b> — if a prompt misses, reword and retry; it's a conversation, not magic.</li>
+    <li><b>End on the "so what"</b> — follow any data answer with "&hellip;and what should I do about it?"</li>
+    <li><b>Never paste secrets or PII</b>, and keep every prompt under 10,000 characters.</li>
   </ul>
+  <div class="callout" style="font-size:1.05vw">Know your two prompt modes: <b style="color:var(--primary-strong)">"teach me"</b> questions return guidance with doc sources; <b style="color:var(--primary-strong)">"show me my data"</b> questions (top N, sorted, timeframed) return live numbers from your environment.</div>
 </section>
-<!-- SPEAKER NOTES: "This slide is the one to screenshot. Layman users get vague answers because they write vague prompts — so coach these habits. Be specific, give context, one question at a time, ask for a format. And a hard rule people forget: keep any single prompt under ten thousand characters, and split longer context into follow-ups. Never paste secrets, and always verify the sources." -->
+<!-- SPEAKER NOTES: "This slide is the one to screenshot — and every habit here was validated against a live tenant. Name the entity, give a timeframe, use Dynatrace nouns, and ask for a shape — 'top 5 sorted by X' — not a vibe. One question per prompt: compound asks are exactly where query generation fails. If a prompt misses, reword and retry out loud — it's a conversation. And always end with 'what should I do about it?' — a recommendation beats a finding. Last thing: know your two modes. 'Teach me' prompts return guidance with sources; 'show me my data' prompts return live numbers. Both are valuable — just know which one you're firing." -->
 
 <!-- 18 · Anatomy of a good prompt ────────────────── -->
 <section class="slide">
@@ -794,7 +795,18 @@
 </section>
 <!-- SPEAKER NOTES: "Don't leave this session without a next step. Confirm it's on, pick one workflow that annoys you, ask Assist, verify the sources, and share the win with your team. Momentum here is social — one good story pulls the whole team in." -->
 
-<!-- 26 · CTA + Q&A ─────────────────────────────── -->
+<!-- 26 · Feedback QR ─────────────────────────────── -->
+<section class="slide marker">
+  <div class="kicker" style="justify-content:center">Act 3 · your feedback</div>
+  <h1 style="font-size:3.2vw">30 seconds of feedback<br /><span class="accent">before Q&amp;A opens</span></h1>
+  <figure class="shot" style="margin-top:1.5vh">
+    <img src="slide_images/QR.png" alt="QR code — Dynatrace Assist session feedback form" style="max-height:40vh;max-width:26vw;background:#fff;padding:14px;border-radius:14px" />
+    <figcaption>Scan with your phone camera — what worked, what didn't, and what to cover next session.</figcaption>
+  </figure>
+</section>
+<!-- SPEAKER NOTES: "Before we open the floor — phones out, scan this QR, thirty seconds. Tell me what landed, what didn't, and what you want the next enablement session to cover. I read every response and it directly shapes the next DUG session. I'll leave it up while we move into Q&A." -->
+
+<!-- 27 · CTA + Q&A ─────────────────────────────── -->
 <section class="slide marker">
   <div class="go">&#10003;</div>
   <h1 style="font-size:3.4vw">Ask it anything.<br /><span class="accent">Then verify the source.</span></h1>

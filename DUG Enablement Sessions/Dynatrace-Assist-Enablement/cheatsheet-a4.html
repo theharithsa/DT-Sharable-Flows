@@ -144,7 +144,7 @@
       <img src="../../assets/dynatrace-logo-dark.svg" alt="Dynatrace" />
       <div class="titles">
         <h1>Dynatrace Assist — Prompt Cheat-Sheet</h1>
-        <div class="sub">Your AI copilot, inside the platform · ask in plain English, verify the source · no ticket for the small stuff</div>
+        <div class="sub">Your AI copilot, inside the platform · ask in plain English, verify the source · immediate answers, before you ever raise a ticket</div>
       </div>
       <span class="badge">DUG Enablement Series</span>
     </div>
@@ -233,19 +233,30 @@ train the models? What controls do admins get?</pre>
         <div class="exp"><b>Get:</b> not used for training · data isolation · encryption · RBAC · admin toggles under <b>Settings › Dynatrace Intelligence</b> · auditable.</div>
       </div>
 
+      <div class="card">
+        <span class="tag">Show me my data — live add-ons</span><span class="who">Any</span>
+        <pre>Top 5 hosts by CPU usage in the last 2 hours
+Active problems in the last 24 hours, sorted by count
+Top 10 services by failure rate in the last 4 hours
+Which log sources produced the most errors today?
+Slowest 10 user actions in the last hour by median duration</pre>
+        <div class="exp"><b>Get:</b> live tables from <b>your</b> tenant (validated). Two modes: "how do I…" prompts <b>teach</b> with doc sources; timeframed "top N sorted by…" prompts <b>show your data</b>.</div>
+      </div>
+
     </div>
 
     <div class="rules">
-      <h2>Prompting best practices</h2>
+      <h2>Prompting best practices — validated live</h2>
       <ul>
-        <li><b>Name the entity</b> — service, host, or pod, not "the thing."</li>
-        <li><b>Give a timeframe</b> — "last 2 hours", "since the deploy."</li>
-        <li><b>State the goal</b> — a query, an explanation, or next steps.</li>
-        <li><b>One question at a time</b> — chain follow-ups, don't stack.</li>
-        <li><b>Paste the real error</b> — exact strings beat paraphrases.</li>
+        <li><b>Name the entity</b> — "checkout-service", not "my app."</li>
+        <li><b>Always give a timeframe</b> — "last 2 hours", "since the deploy."</li>
+        <li><b>Use Dynatrace nouns</b> — problems, failure rate, hosts by CPU.</li>
+        <li><b>Ask for a shape, not a vibe</b> — "top 5 … sorted by …", not "is it healthy?"</li>
+        <li><b>One question per prompt</b> — compound asks fail; chain follow-ups.</li>
+        <li><b>Iterate out loud</b> — reword and retry; it's a conversation, not magic.</li>
+        <li><b>End on the "so what"</b> — "…and what should I do about it?"</li>
         <li><b>Always read the sources</b> — trust, then verify.</li>
-        <li><b>Iterate</b> — "shorter", "as DQL", "for a manager."</li>
-        <li class="k10">Keep every prompt under 10,000 characters.</li>
+        <li class="k10">No secrets or PII · keep prompts under 10,000 characters.</li>
       </ul>
     </div>
 
